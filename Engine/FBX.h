@@ -19,7 +19,8 @@ class FBX
 	struct MATERIAL
 	{
 		Texture* pTexture;
-		XMFLOAT4	diffuse;
+		XMFLOAT4 diffuse;
+		XMFLOAT2 factor;
 	};
 
 	struct CONSTANT_BUFFER
@@ -27,7 +28,8 @@ class FBX
 		XMMATRIX	matWVP; //ワールドビュープロジェクション
 		XMMATRIX	matNormal;   //法線ベクトルの変換用
 		XMFLOAT4    diffuseColor;
-		int        isTextured;
+		XMFLOAT2    diffuseFactor;
+		int         isTextured;
 	};
 
 	//頂点情報
@@ -42,7 +44,7 @@ class FBX
 	ID3D11Buffer** pIndexBuffer_; //インデックスバッファ用メモリ
 	ID3D11Buffer* pConstantBuffer_;//コンスタントバッファようメモリ
 	std::vector<MATERIAL> pMaterialList_;//マテリアルの配列
-	//std::vector<int> indexCount_;
+	std::vector<int> indexCount_;
 
 	int vertexCount_;	//頂点数
 	int polygonCount_;	//ポリゴン数

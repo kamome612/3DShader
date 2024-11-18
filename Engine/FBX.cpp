@@ -1,12 +1,14 @@
 #include "FBX.h"
 #include "Camera.h"
 #include <filesystem>
+#include "Direct3D.h"
+#include "Texture.h"
 
 namespace fs = std::filesystem;
 
 FBX::FBX()
-	:pVertexBuffer_(nullptr),pIndexBuffer_(nullptr),pConstantBuffer_(nullptr),
-	 vertexCount_(-1),polygonCount_(-1)
+	:vertexCount_(0),polygonCount_(0),materialCount_(0),
+	pVertexBuffer_(nullptr),pIndexBuffer_(nullptr),pConstantBuffer_(nullptr)
 {
 }
 
@@ -115,6 +117,7 @@ void FBX::InitIndex(fbxsdk::FbxMesh* mesh)
 	pIndexBuffer_ = new ID3D11Buffer* [materialCount_];
 	//indexCount_ = std::vector<int>(materialCount_);
 	//int* index = new int[polygonCount_ * 3];
+	indexCount_ = std::vector<int>(materialCount_);
 	std::vector<int> index(polygonCount_ * 3);
 
 	for (int i = 0; i < materialCount_; i++) {
@@ -135,7 +138,7 @@ void FBX::InitIndex(fbxsdk::FbxMesh* mesh)
 				}
 			}
 		}
-		//indexCount_[i] = count;
+		indexCount_[i] = count;
 
 		HRESULT hr;
 		D3D11_BUFFER_DESC   bd;
@@ -180,6 +183,7 @@ void FBX::InitConstantBuffer()
 void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 {
 	pMaterialList_ = std::vector<MATERIAL>(materialCount_);
+	//pMaterialList_ = new MATERIAL[materialCount_];
 
 	for (int i = 0; i < materialCount_; i++) {
 		//i番目のマテリアル情報を取得
@@ -204,6 +208,20 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			else {
 				//Error must be handled here
 			}
+
+			////ファイル名+拡張だけにする
+			//char name[_MAX_FNAME]; //ファイル名
+			//char ext[_MAX_EXT];    //拡張子
+			//_splitpath_s(textureFilePath, nullptr, 0, nullptr, 0, name, _MAX_FNAME, ext, _MAX_EXT);
+			//wsprintf(name, "%s%s", name, ext);
+
+			//ファイルからテクスチャ作成
+			/*pMaterialList_[i].pTexture = new Texture;
+			HRESULT hr = pMaterialList_[i].pTexture->Load(name);
+			assert(hr == S_OK);*/
+			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
+			FbxDouble diffuse = pMaterial->DiffuseFactor;
+			pMaterialList_[i].factor = XMFLOAT2((float)diffuse, (float)diffuse);
 		}
 		//テクスチャ無し
 		else {
@@ -213,6 +231,8 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
 			FbxDouble3  diffuse = pMaterial->Diffuse;
 			pMaterialList_[i].diffuse = XMFLOAT4((float)diffuse[0], (float)diffuse[1], (float)diffuse[2], 1.0f);
+			FbxDouble factor = pMaterial->DiffuseFactor;
+			pMaterialList_[i].factor = XMFLOAT2((float)factor, (float)factor);
 		}
 	}
 }
@@ -222,13 +242,14 @@ void FBX::Draw(Transform& transform)
 	Direct3D::SetShader(SHADER_3D);
 	transform.Calculation();//トランスフォームを計算
 
-	CONSTANT_BUFFER cb;
-	cb.matWVP = XMMatrixTranspose(transform.GetWorldMatrix() * Camera::GetViewMatrix() * Camera::GetProjectionMatrix()); //view*projをカメラからとってくる
-	cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIXの掛け算のやり方がDirectXと違うので転置をとる（なんそれ）
-
 	// インデックスバッファーをセット
 	for (int i = 0; i < materialCount_; i++) {
+		CONSTANT_BUFFER cb;
+		cb.matWVP = XMMatrixTranspose(transform.GetWorldMatrix() * Camera::GetViewMatrix() * Camera::GetProjectionMatrix()); //view*projをカメラからとってくる
+		cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIXの掛け算のやり方がDirectXと違うので転置をとる（なんそれ）
 		cb.diffuseColor = pMaterialList_[i].diffuse;
+		cb.diffuseFactor = pMaterialList_[i].factor;
+		//cb.isTextured = pMaterialList_[i].pTexture != nullptr;
 		if (pMaterialList_[i].pTexture == nullptr)
 			cb.isTextured = false;
 		else
@@ -261,7 +282,8 @@ void FBX::Draw(Transform& transform)
 			Direct3D::pContext->PSSetShaderResources(0, 1, &pSRV);
 		}
 		//描画
-		Direct3D::pContext->DrawIndexed(polygonCount_ * 3, 0, 0);
+		/*Direct3D::pContext->DrawIndexed(polygonCount_ * 3, 0, 0);*/
+		Direct3D::pContext->DrawIndexed(indexCount_[i], 0, 0);
 	}
 }
 

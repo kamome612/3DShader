@@ -26,6 +26,8 @@ public:
 	void Release() override;
 
 private:
-	int hModel_;
+	//int hModel_;
+	int hModel_[3];
+	//int Model_;
 };
 
