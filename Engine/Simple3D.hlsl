@@ -14,6 +14,7 @@ cbuffer global
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
     float4x4 matW; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
+    float4 lightVec; //平行光源の方向ベクトル
     float2 factor;       //ディフューズファクター(diffuseFactor)
     bool isTextured; // テクスチャ貼ってあるかどうか
 };
@@ -42,8 +43,9 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     outData.uv = uv;
 
     normal = mul(normal, matW);
-    float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
+    //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
+    float4 light = lightVec;
     light = normalize(light);//単位ベクトル化
     //outData.color = clamp(dot(normal, light), 0, 1);
     
@@ -76,7 +78,6 @@ float4 PS(VS_OUT inData) : SV_Target
     //    return Id * Kd * cos_alpha + Id * Kd * ambentSource;
     //}
     
-    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
     float4 ambentSource = float4(0.2, 0.2, 0.2, 1.0);
     float4 diffuse;
     float4 ambient;
@@ -88,7 +89,7 @@ float4 PS(VS_OUT inData) : SV_Target
     else
     {
         diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.cos_alpha * factor.x;
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
+        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
     return diffuse + ambient;
     //return g_texture.Sample(g_sampler, myUv);

@@ -3,6 +3,7 @@
 //インクルード
 #include <d3d11.h>
 #include <assert.h>
+#include "direct.h"
 
 enum SHADER_TYPE
 {
@@ -21,9 +22,6 @@ enum SHADER_TYPE
 
 namespace Direct3D
 {
-	extern ID3D11Device* pDevice;
-	extern ID3D11DeviceContext* pContext;
-
 	//初期化
 	HRESULT Initialize(int winW, int winH, HWND hWnd);
 
@@ -43,4 +41,11 @@ namespace Direct3D
 
 	//解放
 	void Release();
+
+	extern ID3D11Device* pDevice;
+	extern ID3D11DeviceContext* pContext;
+
+	void SetGlobalLightVec(XMFLOAT4 lv);
+	void GetGlobalLightVec();
+	XMFLOAT4 G_LightVec;
 };

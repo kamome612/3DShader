@@ -28,6 +28,7 @@ class FBX
 		XMMATRIX	matWVP; //ワールドビュープロジェクション
 		XMMATRIX	matNormal;   //法線ベクトルの変換用
 		XMFLOAT4    diffuseColor;
+		XMFLOAT4    globalLightVec;
 		XMFLOAT2    diffuseFactor;
 		int         isTextured;
 	};

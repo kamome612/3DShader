@@ -1,7 +1,7 @@
 #include "Stage.h"
-#include "Engine/Image.h"
-#include "Engine/Quad.h"
 #include "Engine/Model.h"
+#include "Engine/Input.h"
+#include "Engine/Direct3D.h"
 
 Stage::Stage(GameObject* parent)
 	:GameObject(parent, "Stage")
@@ -18,12 +18,13 @@ Stage::~Stage()
 
 void Stage::Initialize()
 {
-	hModel_[0] = Model::Load("Assets/ball.fbx");
+	hModel_[0] = Model::Load("Assets\\ball.fbx");
 	assert(hModel_[0] >= 0);
-	hModel_[1] = Model::Load("Asstes/balldark.fbx");
+	hModel_[1] = Model::Load("Asstes\\balldark.fbx");
 	assert(hModel_[1] >= 0);
-	hModel_[2] = Model::Load("Assets/balllight.fbx");
+	hModel_[2] = Model::Load("Assets\\balllight.fbx");
 	assert(hModel_[2] >= 0);
+	Direct3D::SetGlobalLightVec(lv);
 
 	//Šm‚©‚ß‚é‚æ‚¤
 	/*Model_ = Model::Load("Assets/balllight.fbx");
@@ -32,7 +33,11 @@ void Stage::Initialize()
 
 void Stage::Update()
 {
-	transform_.rotate_.y += 1;
+	transform_.rotate_.y += 0.5;
+	if (Input::IsKey(DIK_X)) {
+		lv.x = lv.x + 0.1;
+	}
+	Direct3D::SetGlobalLightVec(lv);
 }
 
 void Stage::Draw()

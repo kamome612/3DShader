@@ -249,6 +249,7 @@ void FBX::Draw(Transform& transform)
 		cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIX‚ÌŠ|‚¯Z‚Ì‚â‚è•û‚ªDirectX‚Æˆá‚¤‚Ì‚Å“]’u‚ğ‚Æ‚éi‚È‚ñ‚»‚êj
 		cb.diffuseColor = pMaterialList_[i].diffuse;
 		cb.diffuseFactor = pMaterialList_[i].factor;
+		cb.globalLightVec = Direct3D::GetGlobalLightVec();
 		//cb.isTextured = pMaterialList_[i].pTexture != nullptr;
 		if (pMaterialList_[i].pTexture == nullptr)
 			cb.isTextured = false;

@@ -1,5 +1,5 @@
-#include "Direct3D.h"
 #include <d3dcompiler.h>
+#include "Direct3D.h"
 #include <DirectXMath.h>
 
 //変数
@@ -26,6 +26,7 @@ namespace Direct3D
 	ID3D11DepthStencilView* pDepthStencilView; //深度ステンシルビュー
 
 	SHADER_BUNDLE shaderBundle[SHADER_MAX];
+	G_LightVec = { 0,1,-1,0 };//全体の光源ベクトル
 }
 
 HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)
@@ -363,4 +364,14 @@ void Direct3D::Release()
 	SAFE_RELEASE(pSwapChain);
 	SAFE_RELEASE(pContext);
 	SAFE_RELEASE(pDevice);
+}
+
+void Direct3D::SetGlobalLightVec(XMFLOAT4 lv)
+{
+	G_LightVec = lv;
+}
+
+XMFLOAT4 Direct3D::GetGlobalLightVec()
+{
+	return G_LightVec;
 }

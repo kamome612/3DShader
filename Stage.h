@@ -29,5 +29,6 @@ private:
 	//int hModel_;
 	int hModel_[3];
 	//int Model_;
+	XMFLOAT4 lv;
 };
 
