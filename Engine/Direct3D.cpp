@@ -1,6 +1,8 @@
 #include <d3dcompiler.h>
 #include "Direct3D.h"
 #include <DirectXMath.h>
+#include <cassert>
+#include <vector>
 
 //変数
 namespace Direct3D
@@ -9,11 +11,9 @@ namespace Direct3D
 	ID3D11DeviceContext*    pContext = nullptr;		     //デバイスコンテキスト
 	IDXGISwapChain*         pSwapChain = nullptr;        //スワップチェイン
 	ID3D11RenderTargetView* pRenderTargetView = nullptr; //レンダーターゲットビュー
+	ID3D11Texture2D* pDepthStencil;                      //深度ステンシル
+	ID3D11DepthStencilView* pDepthStencilView;           //深度ステンシルビュー
 
-	ID3D11VertexShader*    pVertexShader = nullptr;	    //頂点シェーダー
-	ID3D11PixelShader*     pPixelShader = nullptr;		//ピクセルシェーダー
-	ID3D11InputLayout*     pVertexLayout = nullptr;	    //頂点インプットレイアウト
-	ID3D11RasterizerState* pRasterizerState = nullptr;	//ラスタライザー
 	struct SHADER_BUNDLE
 	{
 		ID3D11VertexShader* pVertexShader_ = nullptr;    //頂点シェーダー
@@ -22,11 +22,8 @@ namespace Direct3D
 		ID3D11RasterizerState* pRasterizerState_ = nullptr;	//ラスタライザー
 	};
 
-	ID3D11Texture2D* pDepthStencil;            //深度ステンシル
-	ID3D11DepthStencilView* pDepthStencilView; //深度ステンシルビュー
-
 	SHADER_BUNDLE shaderBundle[SHADER_MAX];
-	G_LightVec = { 0,1,-1,0 };//全体の光源ベクトル
+	XMFLOAT4 G_LightVec = { 0,1,-1,0 };//全体の光源ベクトル
 }
 
 HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)
@@ -355,10 +352,10 @@ void Direct3D::EndDraw()
 void Direct3D::Release()
 {
 	//解放処理
-	SAFE_RELEASE(pRasterizerState);
+	/*SAFE_RELEASE(pRasterizerState);
 	SAFE_RELEASE(pVertexLayout);
 	SAFE_RELEASE(pPixelShader);
-	SAFE_RELEASE(pVertexShader);
+	SAFE_RELEASE(pVertexShader);*/
 
 	SAFE_RELEASE(pRenderTargetView);
 	SAFE_RELEASE(pSwapChain);

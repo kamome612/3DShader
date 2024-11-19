@@ -2,8 +2,16 @@
 
 //インクルード
 #include <d3d11.h>
-#include <assert.h>
-#include "direct.h"
+#include <DirectXMath.h>
+
+#define SAFE_DELETE(p) if(p != nullptr){ delete p; p = nullptr;}
+#define SAFE_RELEASE(p) if(p != nullptr){ p->Release(); p = nullptr;}
+
+//リンカ
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
+using namespace DirectX;
 
 enum SHADER_TYPE
 {
@@ -12,13 +20,6 @@ enum SHADER_TYPE
 	SHADER_CRT,
 	SHADER_MAX
 };
-
-//リンカ
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-
-#define SAFE_DELETE(p) if(p != nullptr){ delete p; p = nullptr;}
-#define SAFE_RELEASE(p) if(p != nullptr){ p->Release(); p = nullptr;}
 
 namespace Direct3D
 {
@@ -46,6 +47,5 @@ namespace Direct3D
 	extern ID3D11DeviceContext* pContext;
 
 	void SetGlobalLightVec(XMFLOAT4 lv);
-	void GetGlobalLightVec();
-	XMFLOAT4 G_LightVec;
+	XMFLOAT4 GetGlobalLightVec();
 };
