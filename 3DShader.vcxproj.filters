@@ -131,6 +131,9 @@
       <Filter>Engine\Shader</Filter>
     </FxCompile>
     <FxCompile Include="CrtRender.hlsl" />
+    <FxCompile Include="PointLightShader.hlsl">
+      <Filter>Engine\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
