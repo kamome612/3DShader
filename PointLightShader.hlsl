@@ -12,7 +12,7 @@ cbuffer global
 {
     //変換行列、視点、光源
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
-    float4x4 matW; //法線をワールド座標に対応させる行列＝回転＊スケール
+    float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
     float4 lightVec; //平行光源の方向ベクトル
     float2 factor; //ディフューズファクター(diffuseFactor)
@@ -26,7 +26,8 @@ struct VS_OUT
 {
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
-    float4 cos_alpha : COLOR; //色（明るさ）
+    float4 color : COLOR; //色（明るさ）
+    //float4 cos_alpha : COLOR; //色（明るさ）
 };
 
 //───────────────────────────────────────
@@ -42,11 +43,14 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     outData.pos = mul(pos, matWVP);
     outData.uv = uv;
 
-    normal = mul(normal, matW);
+    normal = mul(normal, matNormal);
+    normal.w = 0;
+    normal = normalize(normal);
+    
     //lightを点光源の方向ベクトルに置き換える
-    float4 light = lightVec;
-    light = normalize(light); //単位ベクトル化
-    outData.cos_alpha = clamp(dot(normal, light), 0, 1);
+    float4 lightvec = lightVec - outData.pos;
+    float4 light = normalize(lightvec); //単位ベクトル化
+    outData.color = clamp(dot(normal, light), 0, 1);
 	//まとめて出力
     return outData;
 }
@@ -75,12 +79,12 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 ambient;
     if (isTextured == false)
     {
-        diffuse = diffuseColor * inData.cos_alpha * factor.x;
+        diffuse = diffuseColor * inData.color * factor.x;
         ambient = diffuseColor * ambentSource * factor.x;
     }
     else
     {
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.cos_alpha * factor.x;
+        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
     return diffuse + ambient;

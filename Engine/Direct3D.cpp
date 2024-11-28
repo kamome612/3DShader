@@ -23,7 +23,7 @@ namespace Direct3D
 	};
 
 	SHADER_BUNDLE shaderBundle[SHADER_MAX];
-	XMFLOAT4 G_LightVec = { 0,1,-1,0 };//全体の光源ベクトル
+	XMFLOAT4 G_LightVec = { 0,2,-2,0 };//全体の光源ベクトル
 }
 
 HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)

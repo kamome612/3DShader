@@ -27,7 +27,7 @@ void Stage::Initialize()
 	Direct3D::SetGlobalLightVec(lv);
 
 	//Šm‚©‚ß‚é‚æ‚¤
-	Model_ = Model::Load("Assets/balllight.fbx");
+	Model_ = Model::Load("Assets/ball.fbx");
 	assert(Model_ >= 0);
 }
 
@@ -38,7 +38,7 @@ void Stage::Update()
 		lv.x = lv.x + 0.1;
 	}
 	if (Input::IsKey(DIK_Z)) {
-		lv.y = lv.y + 0.1;
+		lv.x = lv.x - 0.1;
 	}
 	Direct3D::SetGlobalLightVec(lv);
 }
