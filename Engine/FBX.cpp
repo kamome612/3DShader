@@ -1,8 +1,5 @@
 #include "FBX.h"
 #include "Camera.h"
-#include <filesystem>
-#include "Direct3D.h"
-#include "Texture.h"
 
 namespace fs = std::filesystem;
 

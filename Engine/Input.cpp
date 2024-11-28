@@ -1,6 +1,4 @@
 #include "Input.h"
-#include "DirectXMath.h"
-
 
 namespace Input
 {
