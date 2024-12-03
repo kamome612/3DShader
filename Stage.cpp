@@ -24,8 +24,6 @@ void Stage::Initialize()
 	assert(hModel_[1] >= 0);
 	hModel_[2] = Model::Load("Assets/balllight.fbx");
 	assert(hModel_[2] >= 0);*/
-	Direct3D::SetGlobalLightVec(lv);
-
 	//Šm‚©‚ß‚é‚æ‚¤
 	Model_ = Model::Load("Assets/ball.fbx");
 	assert(Model_ >= 0);
@@ -36,20 +34,27 @@ void Stage::Initialize()
 
 void Stage::Update()
 {
-	transform_.rotate_.y += 0.5;
-	if (Input::IsKey(DIK_X)) {
-		lv.x = lv.x + 0.1;
+	transform_.rotate_.y += 0.5f;
+	if (Input::IsKey(DIK_A)) {
+		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		p = { p.x - 0.05f,p.y,p.z,p.w };
+		Direct3D::SetGlobalLightVec(p);
 	}
-	if (Input::IsKey(DIK_Z)) {
-		lv.x = lv.x - 0.1;
-	}
-	if (Input::IsKey(DIK_W)) {
-		transform_.position_.y += 0.1;
+	if (Input::IsKey(DIK_D)) {
+		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		p = { p.x + 0.05f,p.y,p.z,p.w };
+		Direct3D::SetGlobalLightVec(p);
 	}
 	if (Input::IsKey(DIK_S)) {
-		transform_.position_.y -= 0.1;
+		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		p = { p.x,p.y - 0.05f,p.z,p.w };
+		Direct3D::SetGlobalLightVec(p);
 	}
-	Direct3D::SetGlobalLightVec(lv);
+	if (Input::IsKey(DIK_W)) {
+		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		p = { p.x,p.y + 0.05f,p.z,p.w };
+		Direct3D::SetGlobalLightVec(p);
+	}
 }
 
 void Stage::Draw()
@@ -63,7 +68,8 @@ void Stage::Draw()
 		Model::SetTransform(hModel_[i], trs);
 		Model::Draw(hModel_[i]);
 	}*/
-
+	XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+	transform_.position_ = { p.x,p.y,p.z };
 	//Šm‚©‚ß‚é‚æ‚¤
 	Model::SetTransform(rModel_, trs);
 	Model::Draw(rModel_);

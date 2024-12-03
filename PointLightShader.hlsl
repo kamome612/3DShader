@@ -14,9 +14,11 @@ cbuffer global
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
     float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
-    float4 lightVec; //平行光源の方向ベクトル
+    float4 lightPosition;
     float2 factor; //ディフューズファクター(diffuseFactor)
     bool isTextured; // テクスチャ貼ってあるかどうか
+    
+    //float4 Attenuation;
 };
 
 //───────────────────────────────────────
@@ -27,6 +29,8 @@ struct VS_OUT
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
     float4 color : COLOR; //色（明るさ）
+    
+    //float4 norw : NORMALO;
     //float4 cos_alpha : COLOR; //色（明るさ）
 };
 
@@ -47,8 +51,9 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     normal.w = 0;
     normal = normalize(normal);
     
+    //outData.norw = mul(normal, matWVP);
     //lightを点光源の方向ベクトルに置き換える
-    float4 lightvec = lightVec - outData.pos;
+    float4 lightvec = lightPosition - outData.pos;
     float4 light = normalize(lightvec); //単位ベクトル化
     outData.color = clamp(dot(normal, light), 0, 1);
 	//まとめて出力
@@ -60,33 +65,42 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 //───────────────────────────────────────
 float4 PS(VS_OUT inData) : SV_Target
 {
-    //float4 myUv = { 0, 125, 0.25, 0, 0 };
-    //float4 Id = { 1.0, 1.0, 1.0, 0.0 };
-    //float4 Kd = g_texture.Sample(g_sampler, inData.uv);
-    //float cos_alpha = inData.cos_alpha;
-    //float4 ambentSource = { 0.5, 0.5, 0.5, 0.0 };//環境光の強さ
-    //if(isTextured == false)
-    //{
-    //    return Id *  diffuseColor  * cos_alpha + Id * diffuseColor * ambentSource;
-    //}
-    //else
-    //{
-    //    return Id * Kd * cos_alpha + Id * Kd * ambentSource;
-    //}
-    
+    float lightSource = float4(1.0, 1.0, 1.0, 1.0);
     float4 ambentSource = float4(0.2, 0.2, 0.2, 1.0);
     float4 diffuse;
     float4 ambient;
     if (isTextured == false)
     {
-        diffuse = diffuseColor * inData.color * factor.x;
-        ambient = diffuseColor * ambentSource * factor.x;
+        diffuse = lightSource * diffuseColor * inData.color * factor.x;
+        ambient = lightSource * diffuseColor * ambentSource * factor.x;
     }
     else
     {
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
-        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
+        diffuse = lightSource * g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
+        ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
     return diffuse + ambient;
-    //return g_texture.Sample(g_sampler, myUv);
+    
+    //float3 dir;
+    //float len;
+    //float colD;
+    //float colA;
+    //float col;
+    
+    ////点光源の方向
+    //dir = lightVec;
+    
+    ////点光源の距離
+    //len = length(dir);
+    
+    ////点光源の方向をnormalize
+    //dir = dir / len;
+    
+    ////拡散
+    //colD = saturate(dot(normalize(inData.norw.xyz), dir));
+    ////減衰
+    //colA = saturate(1.0f / (Attenuation.x + Attenuation.y * len + Attenuation.z * len * len));
+    
+    //col = colD * colA;
+    //return float4(col, col, col, 1.0f);
 }

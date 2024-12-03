@@ -224,7 +224,7 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 		else {
 			pMaterialList_[i].pTexture = nullptr;
 			//this part are witten after
-			//マテリアルの色 拡散販社と、アンビエントのみのシェーディングモデル
+			//マテリアルの色 拡散反射と、アンビエントのみのシェーディングモデル
 			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
 			FbxDouble3  diffuse = pMaterial->Diffuse;
 			pMaterialList_[i].diffuse = XMFLOAT4((float)diffuse[0], (float)diffuse[1], (float)diffuse[2], 1.0f);
@@ -272,7 +272,7 @@ void FBX::Draw(Transform& transform)
 		Direct3D::pContext->VSSetConstantBuffers(0, 1, &pConstantBuffer_); //頂点シェーダー用 
 		Direct3D::pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer_); //ピクセルシェーダー用
 
-		if (!(pMaterialList_[i].pTexture == nullptr)) {
+		if (pMaterialList_[i].pTexture) {
 			//サンプラーとシェーダーリソースビューをシェーダにセット
 			ID3D11SamplerState* pSampler = pMaterialList_[i].pTexture->GetSampler();
 			Direct3D::pContext->PSSetSamplers(0, 1, &pSampler);

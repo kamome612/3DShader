@@ -149,6 +149,7 @@ HRESULT Direct3D::InitShader()
 	{
 		return E_FAIL;
 	}
+
 	return S_OK;
 }
 
