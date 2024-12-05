@@ -1,6 +1,5 @@
 #pragma once
 #include "Engine/GameObject.h"
-#include "Engine/Direct3D.h"
 
 class Stage :
     public GameObject
@@ -29,8 +28,6 @@ private:
 	//int hModel_;
 	int hModel_[3];
 	int Model_;
-	int rModel_;
-	XMFLOAT4 lv;
-	Transform trs;
+	int hGround_;
 };
 

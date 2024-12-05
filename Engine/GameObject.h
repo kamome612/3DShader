@@ -3,11 +3,13 @@
 #include <string>
 #include <list>
 #include "Transform.h"
-
-class SphereCollider;
+#include "Direct3D.h"
 
 using std::string;
 using std::list;
+
+class SphereCollider;
+
 
 class GameObject
 {

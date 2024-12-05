@@ -8,7 +8,8 @@ namespace Model
 
 int Model::Load(std::string filename)
 {
-	ModelData* pData = new ModelData;
+	ModelData* pData;
+	pData = new ModelData;
 	pData->filename_ = filename;
 	pData->pFbx_ = nullptr;
 

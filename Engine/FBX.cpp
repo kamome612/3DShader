@@ -1,5 +1,10 @@
 #include "FBX.h"
+#include <assert.h>
 #include "Camera.h"
+#include "Direct3D.h"
+#include "Texture.h"
+#include <vector>
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -38,14 +43,21 @@ HRESULT FBX::Load(std::string fileName)
 	fs::path cPath, basePath;
 	cPath = fs::current_path();
 	basePath = cPath;
+	/*char defaultCurrentDir[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, defaultCurrentDir);*/
 
 	//引数のfileNameからディレクトリ部分を取得
-	//char dir[MAX_PATH];
+	char dir[MAX_PATH];
 	string subDir("Assets");
 	fs::path subPath(cPath.string() +"\\" +  subDir);
 	assert(fs::exists(subPath));
 	//カレントディレクトリの変更
 	fs::current_path(subPath);
+	/*char dir[MAX_PATH];
+	_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);*/
+
+	//カレントディレクトリ変更
+	//SetCurrentDirectory(dir);
 
 	InitVertex(mesh);     //頂点バッファ準備
 	InitIndex(mesh);      //インデックスバッファ準備
@@ -54,6 +66,7 @@ HRESULT FBX::Load(std::string fileName)
 
 	//カレントディレクトリをもとに戻す
 	fs::current_path(basePath);
+	//SetCurrentDirectory(defaultCurrentDir);
 
 	//マネージャ解放
 	pFbxManager->Destroy();
@@ -63,8 +76,8 @@ HRESULT FBX::Load(std::string fileName)
 void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 {
 	//頂点情報を入れる配列
-	//VERTEX* vertices = new VERTEX[vertexCount_];
-	std::vector<VERTEX> vertices(vertexCount_);
+	VERTEX* vertices = new VERTEX[vertexCount_];
+	//std::vector<VERTEX> vertices(vertexCount_);
 	//全ポリゴン
 	for (DWORD poly = 0; poly < (DWORD)polygonCount_; poly++)
 	{
@@ -84,9 +97,12 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 			FbxVector2  uv = pUV->GetDirectArray().GetAt(uvIndex);
 			vertices[index].uv = XMVectorSet((float)(uv.mData[0]), (float)(1.0f - uv.mData[1]), 0.0f, 0.0f);
 	
+			FbxLayerElementNormal* leNormal = mesh->GetLayer(0)->GetNormals();
+			FbxLayerElement::EMappingMode mp = leNormal->GetMappingMode();
+			FbxVector4 Normal = leNormal->GetDirectArray().GetAt(index);
 			//頂点の法線
-			FbxVector4 Normal;
-			mesh->GetPolygonVertexNormal(poly, vertex, Normal);	//ｉ番目のポリゴンの、ｊ番目の頂点の法線をゲット
+			//FbxVector4 Normal;
+			//mesh->GetPolygonVertexNormal(poly, vertex, Normal);	//ｉ番目のポリゴンの、ｊ番目の頂点の法線をゲット
 			vertices[index].normal = XMVectorSet((float)Normal[0], (float)Normal[1], -(float)Normal[2], 0.0f);
 		}
 	}
@@ -101,7 +117,8 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 	bd_vertex.MiscFlags = 0;
 	bd_vertex.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA data_vertex;
-	data_vertex.pSysMem = vertices.data();
+	//data_vertex.pSysMem = vertices.data();
+	data_vertex.pSysMem = vertices;
 	hr = Direct3D::pDevice->CreateBuffer(&bd_vertex, &data_vertex, &pVertexBuffer_);
 	if (FAILED(hr))
 	{
@@ -114,8 +131,8 @@ void FBX::InitIndex(fbxsdk::FbxMesh* mesh)
 	pIndexBuffer_ = new ID3D11Buffer* [materialCount_];
 	//indexCount_ = std::vector<int>(materialCount_);
 	//int* index = new int[polygonCount_ * 3];
-	indexCount_ = std::vector<int>(materialCount_);
-	std::vector<int> index(polygonCount_ * 3);
+	indexCount_ = vector<int>(materialCount_);
+	vector<int> index(polygonCount_ * 3);
 
 	for (int i = 0; i < materialCount_; i++) {
 		int count = 0;
@@ -243,16 +260,17 @@ void FBX::Draw(Transform& transform)
 	// インデックスバッファーをセット
 	for (int i = 0; i < materialCount_; i++) {
 		CONSTANT_BUFFER cb;
+		cb.matW = XMMatrixTranspose(transform.GetWorldMatrix());
 		cb.matWVP = XMMatrixTranspose(transform.GetWorldMatrix() * Camera::GetViewMatrix() * Camera::GetProjectionMatrix()); //view*projをカメラからとってくる
 		cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIXの掛け算のやり方がDirectXと違うので転置をとる（なんそれ）
 		cb.diffuseColor = pMaterialList_[i].diffuse;
+		cb.lightPosition = Direct3D::GetLightPos();
 		cb.diffuseFactor = pMaterialList_[i].factor;
-		cb.globalLightVec = Direct3D::GetGlobalLightVec();
-		//cb.isTextured = pMaterialList_[i].pTexture != nullptr;
-		if (pMaterialList_[i].pTexture == nullptr)
+		cb.isTextured = pMaterialList_[i].pTexture != nullptr;
+		/*if (pMaterialList_[i].pTexture == nullptr)
 			cb.isTextured = false;
 		else
-			cb.isTextured = true;
+			cb.isTextured = true;*/
 
 		D3D11_MAPPED_SUBRESOURCE pdata;
 		Direct3D::pContext->Map(pConstantBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata); // GPUからのデータアクセスを止める
@@ -264,6 +282,7 @@ void FBX::Draw(Transform& transform)
 		UINT offset = 0;
 		Direct3D::pContext->IASetVertexBuffers(0, 1, &pVertexBuffer_, &stride, &offset);
 
+		//インデックスバッファーをセット
 		stride = sizeof(int);
 		offset = 0;
 		Direct3D::pContext->IASetIndexBuffer(pIndexBuffer_[i], DXGI_FORMAT_R32_UINT, 0);

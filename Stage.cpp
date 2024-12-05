@@ -1,6 +1,7 @@
 #include "Stage.h"
 #include "Engine/Model.h"
 #include "Engine/Input.h"
+#include "Engine/Camera.h"
 
 Stage::Stage(GameObject* parent)
 	:GameObject(parent, "Stage")
@@ -9,7 +10,7 @@ Stage::Stage(GameObject* parent)
 	hModel_[1] = -1;
 	hModel_[2] = -1;
 	Model_ = -1;
-	rModel_ = -1;
+	hGround_ = -1;
 }
 
 Stage::~Stage()
@@ -27,33 +28,48 @@ void Stage::Initialize()
 	//Šm‚©‚ß‚é‚æ‚¤
 	Model_ = Model::Load("Assets/ball.fbx");
 	assert(Model_ >= 0);
-	rModel_ = Model::Load("Assets/roadb.fbx");
-	assert(rModel_ >= 0);
-	trs = transform_;
+	hGround_ = Model::Load("Assets/roadb.fbx");
+	assert(hGround_ >= 0);
+
+	/*Camera::SetPosition(XMFLOAT3{ 0, 0.5, -1 });
+	Camera::SetTarget(XMFLOAT3{ 0,0,0 });*/
 }
 
 void Stage::Update()
 {
 	transform_.rotate_.y += 0.5f;
 	if (Input::IsKey(DIK_A)) {
-		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		XMFLOAT4 p = Direct3D::GetLightPos();
 		p = { p.x - 0.05f,p.y,p.z,p.w };
-		Direct3D::SetGlobalLightVec(p);
+		Direct3D::SetLightPos(p);
 	}
 	if (Input::IsKey(DIK_D)) {
-		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+		XMFLOAT4 p = Direct3D::GetLightPos();
 		p = { p.x + 0.05f,p.y,p.z,p.w };
-		Direct3D::SetGlobalLightVec(p);
+		Direct3D::SetLightPos(p);
 	}
 	if (Input::IsKey(DIK_S)) {
-		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
-		p = { p.x,p.y - 0.05f,p.z,p.w };
-		Direct3D::SetGlobalLightVec(p);
+		XMFLOAT4 p = Direct3D::GetLightPos();
+		p = { p.x,p.y,p.z - 0.05f,p.w };
+		Direct3D::SetLightPos(p);
 	}
 	if (Input::IsKey(DIK_W)) {
-		XMFLOAT4 p = Direct3D::GetGlobalLightVec();
-		p = { p.x,p.y + 0.05f,p.z,p.w };
-		Direct3D::SetGlobalLightVec(p);
+		XMFLOAT4 p = Direct3D::GetLightPos();
+		p = { p.x,p.y,p.z + 0.05f,p.w };
+		Direct3D::SetLightPos(p);
+	}
+
+	if (Input::IsKey(DIK_UP))
+	{
+		XMFLOAT4 p = Direct3D::GetLightPos();
+		p = { p.x,p.y + 0.05f, p.z,p.w };
+		Direct3D::SetLightPos(p);
+	}
+	if (Input::IsKey(DIK_DOWN))
+	{
+		XMFLOAT4 p = Direct3D::GetLightPos();
+		p = { p.x ,p.y - 0.05f, p.z,p.w };
+		Direct3D::SetLightPos(p);
 	}
 }
 
@@ -68,13 +84,33 @@ void Stage::Draw()
 		Model::SetTransform(hModel_[i], trs);
 		Model::Draw(hModel_[i]);
 	}*/
-	XMFLOAT4 p = Direct3D::GetGlobalLightVec();
+	XMFLOAT4 p = Direct3D::GetLightPos();
 	transform_.position_ = { p.x,p.y,p.z };
 	//Šm‚©‚ß‚é‚æ‚¤
-	Model::SetTransform(rModel_, trs);
-	Model::Draw(rModel_);
+	Transform ltr;
+	ltr.position_ = { 0,0,0 };
+	Model::SetTransform(hGround_, ltr);
+	Model::Draw(hGround_);
 	Model::SetTransform(Model_, transform_);
 	Model::Draw(Model_);
+
+	/*Transform ltr;
+	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };
+	ltr.scale_ = { 0.1,0.1,0.1 };
+	Model::SetTransform(hModel_[0], ltr);
+	Model::Draw(hModel_[0]);*/
+
+	//Transform ltr;
+	//ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };
+	////ltr.scale_ = { 0.1,0.1,0.1 };
+	//Model::SetTransform(Model_, ltr);
+	//Model::Draw(Model_);
+
+	//Transform tr;
+	//tr.position_ = { 0,0,0 };
+	//tr.rotate_ = { 0,0,0 };
+	//Model::SetTransform(hGround_, tr);
+	//Model::Draw(hGround_);
 }
 
 void Stage::Release()
