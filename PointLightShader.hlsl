@@ -11,12 +11,12 @@ SamplerState g_sampler : register(s0); //サンプラー
 cbuffer global
 {
     //変換行列、視点、光源
-    float4x4 matW; //ワールド変換マトリクス
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
+    float4x4 matW; //ワールド変換マトリクス
     float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
     float4 lightPosition;
-    float2 factor; //ディフューズファクター(diffuseFactor)
+    float4 factor; //ディフューズファクター(diffuseFactor)
     bool isTextured; // テクスチャ貼ってあるかどうか
     
     //float4 Attenuation;
@@ -30,7 +30,6 @@ struct VS_OUT
     float4 wpos : POSITION;
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
-    float4 color : COLOR; //色（明るさ）
     float4 normal : NORMAL;
     
     //float4 norw : NORMALO;
@@ -48,17 +47,14 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 	//ローカル座標に、ワールド・ビュー・プロジェクション行列をかけて
 	//スクリーン座標に変換し、ピクセルシェーダーへ
     
-    //float4 spos = mul(pos, matWVP);
-    //float4 wpos = mul(pos, matW);
+    float4 spos = mul(pos, matWVP);
+    float4 wpos = mul(pos, matW);
+    float4 wnormal = mul(normal, matNormal);
     
-    //normal.z = 0;
-    //float4 wnormal = mul(normal, matNormal);
-    
-    outData.wpos = mul(pos,matW);
-    outData.pos = mul(pos, matWVP);
-    outData.uv = uv;
-    
-    outData.normal = mul(normal, matNormal);
+    outData.pos = spos;
+    outData.wpos = wpos;
+    outData.uv = uv.xy;
+    outData.normal = wnormal;
     
     //float dir = normalize(lightPosition - wpos);
     //outData.color = clamp(dot(normalize(wnormal), dir), 0, 1);
@@ -81,30 +77,27 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 //───────────────────────────────────────
 float4 PS(VS_OUT inData) : SV_Target
 {
-    float3 ambentSource = float3(0.2, 0.2, 0.2);
+    float4 diffuse;
+    float4 ambient;
+    float4 ambentSource = { 0.2, 0.2, 0.2, 1.0 };
     float3 dir = normalize(lightPosition.xyz - inData.wpos.xyz);//ピクセル位置の織ゴンの３次元座標 = wpos
-    inData.normal.z = 0;
-    float3 color = saturate(dot(normalize(inData.normal).xyz, dir));
-    
-    //減衰
+    //inData.normal.z = 0;
+    float color = saturate(dot(normalize(inData.normal.xyz), dir));
+    float3 k = { 0.2f, 0.2f, 1.0f };
     float len = length(lightPosition.xyz - inData.wpos.xyz);
-    float3 k = { 1.0, 1.0, 0.5 };
-    float colA = saturate(1.0f / (k.x + k.y * len + k.z * len * len));
+    float dTerm = 1.0 / (k.x + k.y * len + k.z * len * len);
     
-    float3 diffuse;
-    float3 ambient;
     if (isTextured == false)
     {
-        diffuse =  diffuseColor.xyz * color * factor.x;
-        ambient =  diffuseColor.xyz * ambentSource * factor.x;
+        diffuse = diffuseColor * color * dTerm * factor.x;
+        ambient = diffuseColor * ambentSource;
     }
     else
     {
-        diffuse = g_texture.Sample(g_sampler, inData.uv).xyz * color * colA;
-        ambient = g_texture.Sample(g_sampler, inData.uv).xyz * ambentSource * factor.x;
+        diffuse = g_texture.Sample(g_sampler, inData.uv)* color * dTerm * factor.x;
+        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource;
     }
-    //return diffuse + ambient;
-    return float4(diffuse, 1.0f);
+    return diffuse + ambient;
     
     //float3 dir;
     //float len;

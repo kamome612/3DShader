@@ -1,12 +1,11 @@
-#include "FBX.h"
 #include <assert.h>
-#include "Camera.h"
+#include "FBX.h"
 #include "Direct3D.h"
+#include "Camera.h"
 #include "Texture.h"
 #include <vector>
 #include <filesystem>
 
-namespace fs = std::filesystem;
 
 FBX::FBX()
 	:vertexCount_(0),polygonCount_(0),materialCount_(0),
@@ -40,24 +39,28 @@ HRESULT FBX::Load(std::string fileName)
 	materialCount_ = pNode->GetMaterialCount();
 
 	//現在のカレントディレクトリを覚えておく
-	fs::path cPath, basePath;
+	/*fs::path cPath, basePath;
 	cPath = fs::current_path();
-	basePath = cPath;
-	/*char defaultCurrentDir[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, defaultCurrentDir);*/
+	basePath = cPath;*/
+
+	//現在のカレントディレクトリを取得
+	char defaultCurrentDir[MAX_PATH];
+	GetCurrentDirectoryA(MAX_PATH, defaultCurrentDir);
+
+	//引数のfileNameからディレクトリ部分を取得
+	/*char dir[MAX_PATH];
+	string subDir("Assets");
+	fs::path subPath(cPath.string() +"\\" +  subDir);
+	assert(fs::exists(subPath));*/
+	//カレントディレクトリの変更
+	//fs::current_path(subPath);
 
 	//引数のfileNameからディレクトリ部分を取得
 	char dir[MAX_PATH];
-	string subDir("Assets");
-	fs::path subPath(cPath.string() +"\\" +  subDir);
-	assert(fs::exists(subPath));
-	//カレントディレクトリの変更
-	fs::current_path(subPath);
-	/*char dir[MAX_PATH];
-	_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);*/
+	_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);
 
 	//カレントディレクトリ変更
-	//SetCurrentDirectory(dir);
+	SetCurrentDirectoryA(dir);
 
 	InitVertex(mesh);     //頂点バッファ準備
 	InitIndex(mesh);      //インデックスバッファ準備
@@ -65,8 +68,8 @@ HRESULT FBX::Load(std::string fileName)
 	InitMaterial(pNode);
 
 	//カレントディレクトリをもとに戻す
-	fs::current_path(basePath);
-	//SetCurrentDirectory(defaultCurrentDir);
+	//fs::current_path(basePath);
+	SetCurrentDirectoryA(defaultCurrentDir);
 
 	//マネージャ解放
 	pFbxManager->Destroy();
@@ -79,7 +82,7 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 	VERTEX* vertices = new VERTEX[vertexCount_];
 	//std::vector<VERTEX> vertices(vertexCount_);
 	//全ポリゴン
-	for (DWORD poly = 0; poly < (DWORD)polygonCount_; poly++)
+	for (DWORD poly = 0; poly < polygonCount_; poly++)
 	{
 		//3頂点分
 		for (int vertex = 0; vertex < 3; vertex++)
@@ -95,7 +98,7 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 			FbxLayerElementUV* pUV = mesh->GetLayer(0)->GetUVs();
 			int uvIndex = mesh->GetTextureUVIndex(poly, vertex, FbxLayerElement::eTextureDiffuse);
 			FbxVector2  uv = pUV->GetDirectArray().GetAt(uvIndex);
-			vertices[index].uv = XMVectorSet((float)(uv.mData[0]), (float)(1.0f - uv.mData[1]), 0.0f, 0.0f);
+			vertices[index].uv = XMVectorSet((float)(uv.mData[0]), (float)(1.0 - uv.mData[1]), 0.0f, 0.0f);
 	
 			FbxLayerElementNormal* leNormal = mesh->GetLayer(0)->GetNormals();
 			FbxLayerElement::EMappingMode mp = leNormal->GetMappingMode();
@@ -128,7 +131,7 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 
 void FBX::InitIndex(fbxsdk::FbxMesh* mesh)
 {
-	pIndexBuffer_ = new ID3D11Buffer* [materialCount_];
+	pIndexBuffer_ = new ID3D11Buffer * [materialCount_];
 	//indexCount_ = std::vector<int>(materialCount_);
 	//int* index = new int[polygonCount_ * 3];
 	indexCount_ = vector<int>(materialCount_);
@@ -137,7 +140,7 @@ void FBX::InitIndex(fbxsdk::FbxMesh* mesh)
 	for (int i = 0; i < materialCount_; i++) {
 		int count = 0;
 		//全ポリゴン
-		for (DWORD poly = 0; poly < (DWORD)polygonCount_; poly++)
+		for (DWORD poly = 0; poly < polygonCount_; poly++)
 		{
 			FbxLayerElementMaterial* mtl = mesh->GetLayer(0)->GetMaterials();
 			int mtlId = mtl->GetIndexArray().GetAt(poly);
@@ -193,7 +196,7 @@ void FBX::InitConstantBuffer()
 		MessageBox(NULL, L"コンスタントバッファの作成に失敗", NULL, MB_OK);
 	}
 }
-
+namespace fs = std::filesystem;
 void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 {
 	pMaterialList_ = std::vector<MATERIAL>(materialCount_);
@@ -219,9 +222,6 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 				pMaterialList_[i].pTexture = new Texture;
 				pMaterialList_[i].pTexture->Load(texFile.string());
 			}
-			else {
-				//Error must be handled here
-			}
 
 			////ファイル名+拡張だけにする
 			//char name[_MAX_FNAME]; //ファイル名
@@ -235,7 +235,8 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			assert(hr == S_OK);*/
 			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
 			FbxDouble diffuse = pMaterial->DiffuseFactor;
-			pMaterialList_[i].factor = XMFLOAT2((float)diffuse, (float)diffuse);
+			pMaterialList_[i].factor = XMFLOAT4((float)diffuse, (float)diffuse,
+				                                (float)diffuse,(float)diffuse);
 		}
 		//テクスチャ無し
 		else {
@@ -246,7 +247,7 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			FbxDouble3  diffuse = pMaterial->Diffuse;
 			pMaterialList_[i].diffuse = XMFLOAT4((float)diffuse[0], (float)diffuse[1], (float)diffuse[2], 1.0f);
 			FbxDouble factor = pMaterial->DiffuseFactor;
-			pMaterialList_[i].factor = XMFLOAT2((float)factor, (float)factor);
+			pMaterialList_[i].factor = XMFLOAT4((float)factor, (float)factor,(float)factor,(float)factor);
 		}
 	}
 }
