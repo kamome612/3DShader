@@ -1,9 +1,23 @@
 #pragma once
 #include "Engine/GameObject.h"
 
+struct CONSTBUFFER_STAGE
+{
+	XMFLOAT4 lightPosition; //光源位置
+	XMFLOAT4 eyePosition;   //視点の位置
+};
+
 class Stage :
     public GameObject
 {
+private:
+	//int hModel_;
+	int hModel_[3];
+	int Model_;
+	int hGround_;
+	ID3D11Buffer* pConstantBuffer_;
+	void InitConstantBuffer();
+
 public:
 
 	//コンストラクタ
@@ -23,11 +37,5 @@ public:
 
 	//開放
 	void Release() override;
-
-private:
-	//int hModel_;
-	int hModel_[3];
-	int Model_;
-	int hGround_;
 };
 

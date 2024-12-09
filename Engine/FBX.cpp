@@ -182,7 +182,7 @@ void FBX::InitConstantBuffer()
 	//コンスタントバッファ作成
 	HRESULT hr;
 	D3D11_BUFFER_DESC cb;
-	cb.ByteWidth = sizeof(CONSTANT_BUFFER);
+	cb.ByteWidth = sizeof(CONSTBUFFER_MODEL);
 	cb.Usage = D3D11_USAGE_DYNAMIC;
 	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -260,12 +260,12 @@ void FBX::Draw(Transform& transform)
 
 	// インデックスバッファーをセット
 	for (int i = 0; i < materialCount_; i++) {
-		CONSTANT_BUFFER cb;
+		CONSTBUFFER_MODEL cb;
 		cb.matW = XMMatrixTranspose(transform.GetWorldMatrix());
 		cb.matWVP = XMMatrixTranspose(transform.GetWorldMatrix() * Camera::GetViewMatrix() * Camera::GetProjectionMatrix()); //view*projをカメラからとってくる
 		cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIXの掛け算のやり方がDirectXと違うので転置をとる（なんそれ）
 		cb.diffuseColor = pMaterialList_[i].diffuse;
-		cb.lightPosition = Direct3D::GetLightPos();
+		//cb.lightPosition = Direct3D::GetLightPos();
 		cb.diffuseFactor = pMaterialList_[i].factor;
 		cb.isTextured = pMaterialList_[i].pTexture != nullptr;
 		/*if (pMaterialList_[i].pTexture == nullptr)

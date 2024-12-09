@@ -3,8 +3,25 @@
 #include "Engine/Input.h"
 #include "Engine/Camera.h"
 
+void Stage::InitConstantBuffer()
+{
+	D3D11_BUFFER_DESC cb;
+	cb.ByteWidth = sizeof(CONSTBUFFER_STAGE);
+	cb.Usage = D3D11_USAGE_DYNAMIC;
+	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cb.MiscFlags = 0;
+	cb.StructureByteStride = 0;
+	HRESULT hr;
+	hr = Direct3D::pDevice->CreateBuffer(&cb, nullptr, &pConstantBuffer_);
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, L"コンスタントバッファの作成に失敗", NULL, MB_OK);
+	}
+}
+
 Stage::Stage(GameObject* parent)
-	:GameObject(parent, "Stage")
+	:GameObject(parent, "Stage"),pConstantBuffer_(nullptr)
 {
 	hModel_[0] = -1;
 	hModel_[1] = -1;
@@ -31,8 +48,10 @@ void Stage::Initialize()
 	hGround_ = Model::Load("Assets/roadb.fbx");
 	assert(hGround_ >= 0);
 
-	/*Camera::SetPosition(XMFLOAT3{ 0, 0.5, -1 });
-	Camera::SetTarget(XMFLOAT3{ 0,0,0 });*/
+	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
+	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
+
+	InitConstantBuffer();
 }
 
 void Stage::Update()
@@ -71,6 +90,8 @@ void Stage::Update()
 		p = { p.x ,p.y - 0.05f, p.z,p.w };
 		Direct3D::SetLightPos(p);
 	}
+
+	//コンスタントバッファのシェーへのコンスタントバッファのセットを書くよ
 }
 
 void Stage::Draw()
