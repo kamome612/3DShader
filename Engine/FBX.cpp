@@ -6,6 +6,7 @@
 #include <vector>
 #include <filesystem>
 
+namespace fs = std::filesystem;
 
 FBX::FBX()
 	:vertexCount_(0),polygonCount_(0),materialCount_(0),
@@ -39,28 +40,28 @@ HRESULT FBX::Load(std::string fileName)
 	materialCount_ = pNode->GetMaterialCount();
 
 	//現在のカレントディレクトリを覚えておく
-	/*fs::path cPath, basePath;
+	fs::path cPath, basePath;
 	cPath = fs::current_path();
-	basePath = cPath;*/
-
-	//現在のカレントディレクトリを取得
-	char defaultCurrentDir[MAX_PATH];
-	GetCurrentDirectoryA(MAX_PATH, defaultCurrentDir);
-
-	//引数のfileNameからディレクトリ部分を取得
-	/*char dir[MAX_PATH];
-	string subDir("Assets");
-	fs::path subPath(cPath.string() +"\\" +  subDir);
-	assert(fs::exists(subPath));*/
-	//カレントディレクトリの変更
-	//fs::current_path(subPath);
+	basePath = cPath;
 
 	//引数のfileNameからディレクトリ部分を取得
 	char dir[MAX_PATH];
-	_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);
+	string subDir("Assets");
+	fs::path subPath(cPath.string() +"\\" +  subDir);
+	assert(fs::exists(subPath));
+	//カレントディレクトリの変更
+	fs::current_path(subPath);
+
+	////現在のカレントディレクトリを取得
+	//char defaultCurrentDir[MAX_PATH];
+	//GetCurrentDirectoryA(MAX_PATH, defaultCurrentDir);
+
+	////引数のfileNameからディレクトリ部分を取得
+	//char dir[MAX_PATH];
+	//_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);
 
 	//カレントディレクトリ変更
-	SetCurrentDirectoryA(dir);
+    SetCurrentDirectoryA(dir);
 
 	InitVertex(mesh);     //頂点バッファ準備
 	InitIndex(mesh);      //インデックスバッファ準備
@@ -68,8 +69,8 @@ HRESULT FBX::Load(std::string fileName)
 	InitMaterial(pNode);
 
 	//カレントディレクトリをもとに戻す
-	//fs::current_path(basePath);
-	SetCurrentDirectoryA(defaultCurrentDir);
+	fs::current_path(basePath);
+	//SetCurrentDirectoryA(defaultCurrentDir);
 
 	//マネージャ解放
 	pFbxManager->Destroy();
@@ -196,7 +197,8 @@ void FBX::InitConstantBuffer()
 		MessageBox(NULL, L"コンスタントバッファの作成に失敗", NULL, MB_OK);
 	}
 }
-namespace fs = std::filesystem;
+
+
 void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 {
 	pMaterialList_ = std::vector<MATERIAL>(materialCount_);
@@ -216,11 +218,13 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 		if (fileTextureCount > 0) {
 			FbxFileTexture* textureInfo = lProperty.GetSrcObject<FbxFileTexture>(0);
 			const char* textureFilePath = textureInfo->GetRelativeFileName();
+
 			fs::path texFile(textureFilePath);
 			//ここで存在チェックが必要
 			if (fs::is_regular_file(texFile)) {
 				pMaterialList_[i].pTexture = new Texture;
-				pMaterialList_[i].pTexture->Load(texFile.string());
+				HRESULT hr = pMaterialList_[i].pTexture->Load(texFile.string());
+				assert(hr == S_OK);
 			}
 
 			////ファイル名+拡張だけにする
@@ -263,6 +267,7 @@ void FBX::Draw(Transform& transform)
 		CONSTBUFFER_MODEL cb;
 		cb.matW = XMMatrixTranspose(transform.GetWorldMatrix());
 		cb.matWVP = XMMatrixTranspose(transform.GetWorldMatrix() * Camera::GetViewMatrix() * Camera::GetProjectionMatrix()); //view*projをカメラからとってくる
+		cb.matW = XMMatrixTranspose(transform.GetWorldMatrix());
 		cb.matNormal = XMMatrixTranspose(transform.GetNormalMatrix()); //MATRIXの掛け算のやり方がDirectXと違うので転置をとる（なんそれ）
 		cb.diffuseColor = pMaterialList_[i].diffuse;
 		//cb.lightPosition = Direct3D::GetLightPos();

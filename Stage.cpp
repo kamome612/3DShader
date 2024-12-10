@@ -23,10 +23,7 @@ void Stage::InitConstantBuffer()
 Stage::Stage(GameObject* parent)
 	:GameObject(parent, "Stage"),pConstantBuffer_(nullptr)
 {
-	hModel_[0] = -1;
-	hModel_[1] = -1;
-	hModel_[2] = -1;
-	Model_ = -1;
+	hModel_ = -1;
 	hGround_ = -1;
 }
 
@@ -43,13 +40,16 @@ void Stage::Initialize()
 	hModel_[2] = Model::Load("Assets/balllight.fbx");
 	assert(hModel_[2] >= 0);*/
 	//Šm‚©‚ß‚é‚æ‚¤
-	Model_ = Model::Load("Assets/ball.fbx");
-	assert(Model_ >= 0);
-	hGround_ = Model::Load("Assets/roadb.fbx");
+	hModel_ = Model::Load("Assets\\ball.fbx");
+	assert(hModel_ >= 0);
+	hGround_ = Model::Load("Assets\\roadb.fbx");
 	assert(hGround_ >= 0);
 
-	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
-	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
+	/*Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
+	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });*/
+
+	Camera::SetPosition(XMFLOAT3{ 0, 5, -5 });
+	Camera::SetTarget(XMFLOAT3{ 0,1,0 });
 
 	InitConstantBuffer();
 }
@@ -96,24 +96,29 @@ void Stage::Update()
 
 void Stage::Draw()
 {
-	/*for (int i = 0; i < 3; i++) {
-		Transform trs;
-		trs.position_ = { transform_.position_.x + (float)i * 2.0f,
-			              transform_.position_.y,transform_.position_.z };
-		trs.scale_ = transform_.scale_;
-		trs.rotate_ = transform_.rotate_;
-		Model::SetTransform(hModel_[i], trs);
-		Model::Draw(hModel_[i]);
-	}*/
-	XMFLOAT4 p = Direct3D::GetLightPos();
-	transform_.position_ = { p.x,p.y,p.z };
-	//Šm‚©‚ß‚é‚æ‚¤
 	Transform ltr;
-	ltr.position_ = { 0,0,0 };
-	Model::SetTransform(hGround_, ltr);
+	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,
+					 Direct3D::GetLightPos().z };
+	ltr.scale_ = { 0.5,0.5,0.5 };
+	Model::SetTransform(hModel_, ltr);
+	Model::Draw(hModel_);
+
+	Transform gTrs;
+	gTrs.position_ = { 0,0,0 };
+	gTrs.rotate_ = { 0,0,0 };
+	Model::SetTransform(hGround_, gTrs);
 	Model::Draw(hGround_);
-	Model::SetTransform(Model_, transform_);
-	Model::Draw(Model_);
+
+
+	//XMFLOAT4 p = Direct3D::GetLightPos();
+	//transform_.position_ = { p.x,p.y,p.z };
+	////Šm‚©‚ß‚é‚æ‚¤
+	//Transform ltr;
+	//ltr.position_ = { 0,0,0 };
+	//Model::SetTransform(hGround_, ltr);
+	//Model::Draw(hGround_);
+	//Model::SetTransform(hModel_, transform_);
+	//Model::Draw(hModel_);
 
 	/*Transform ltr;
 	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };

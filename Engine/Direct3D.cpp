@@ -78,6 +78,12 @@ HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)
 	//スワップチェーンからバックバッファを取得（バックバッファ ＝ レンダーターゲット）
 	ID3D11Texture2D* pBackBuffer;
 	pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, L"バックバッファの取得に失敗しました", L"エラー", MB_OK);
+		//エラー処理
+		return hr;
+	}
 
 	//レンダーターゲットビューを作成
 	hr = pDevice->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTargetView);
@@ -124,14 +130,17 @@ HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)
 
 	//シェーダー準備
 	hr = InitShader();
-	
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	return S_OK;
 }
 
 //シェーダー準備
 HRESULT Direct3D::InitShader()
 {	
-	if (FAILED(InitShader3D()))
+	/*if (FAILED(InitShader3D()))
 	{
 		return E_FAIL;
 	}
@@ -139,12 +148,7 @@ HRESULT Direct3D::InitShader()
 	if (FAILED(InitShader2D()))
 	{
 		return E_FAIL;
-	}
-
-	if (FAILED(InitShaderCRT()))
-	{
-		return E_FAIL;
-	}
+	}*/
 
 	if (FAILED(InitPLShader()))
 	{
@@ -164,9 +168,9 @@ HRESULT Direct3D::InitShader3D()
 	ID3DBlob* pCompileVS = nullptr;
 	D3DCompileFromFile(L"Simple3D.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
 	assert(pCompileVS != nullptr);
+
 	hr = pDevice->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL,
 		&(shaderBundle[SHADER_3D].pVertexShader_));
-
 	if (FAILED(hr)) {
 		MessageBox(NULL, L"頂点シェーダの作成に失敗しました", L"エラー", MB_OK);
 		return hr;
@@ -180,7 +184,6 @@ HRESULT Direct3D::InitShader3D()
 	};
 	hr = pDevice->CreateInputLayout(layout, 3, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), 
 		                           &(shaderBundle[SHADER_3D].pVertexLayout_));
-
 	if (FAILED(hr)) {
 		MessageBox(NULL, L"頂点インプットレイアウトに失敗しました", L"エラー", MB_OK);
 		SAFE_RELEASE(pCompileVS);
@@ -192,6 +195,7 @@ HRESULT Direct3D::InitShader3D()
 	ID3DBlob* pCompilePS = nullptr;
 	D3DCompileFromFile(L"Simple3D.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
 	assert(pCompilePS != nullptr);
+
 	hr = pDevice->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL, 
 		 &shaderBundle[SHADER_3D].pPixelShader_);
 	if (FAILED(hr)) {
@@ -268,64 +272,6 @@ HRESULT Direct3D::InitShader2D()
 	rdc.FillMode = D3D11_FILL_SOLID;   //多角形の内部を塗りつぶす
 	rdc.FrontCounterClockwise = FALSE; //反時計回りを表にするかどうか(がfalseなので時計周りが表)
 	hr = pDevice->CreateRasterizerState(&rdc, &(shaderBundle[SHADER_2D].pRasterizerState_));
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"ラスタライザの作成に失敗しました", L"エラー", MB_OK);
-		return hr;
-	}
-	//2D用のシェーダー設定の皆さん、ここまで
-
-	return S_OK;
-}
-
-HRESULT Direct3D::InitShaderCRT()
-{
-	using namespace Direct3D;
-	//2D用のシェーダー設定の皆さん、ここから
-	// 頂点シェーダの作成（コンパイル）
-	HRESULT hr;
-	ID3DBlob* pCompileVS = nullptr;
-	D3DCompileFromFile(L"CrtRender.hlsl", nullptr, nullptr, "VS", "vs_5_0", NULL, 0, &pCompileVS, NULL);
-	assert(pCompileVS != nullptr);
-	hr = pDevice->CreateVertexShader(pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(), NULL,
-		&shaderBundle[SHADER_CRT].pVertexShader_);
-
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"頂点シェーダの作成に失敗しました", L"エラー", MB_OK);
-		return hr;
-	}
-
-	//頂点インプットレイアウト
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },	//位置
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, sizeof(DirectX::XMVECTOR) , D3D11_INPUT_PER_VERTEX_DATA, 0 },//UV座標
-	};
-	hr = pDevice->CreateInputLayout(layout, 2, pCompileVS->GetBufferPointer(), pCompileVS->GetBufferSize(),
-		&shaderBundle[SHADER_CRT].pVertexLayout_);
-
-	SAFE_RELEASE(pCompileVS);
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"頂点インプットレイアウトに失敗しました", L"エラー", MB_OK);
-		return hr;
-	}
-
-	// ピクセルシェーダの作成（コンパイル）
-	ID3DBlob* pCompilePS = nullptr;
-	D3DCompileFromFile(L"CrtRender.hlsl", nullptr, nullptr, "PS", "ps_5_0", NULL, 0, &pCompilePS, NULL);
-	assert(pCompilePS != nullptr);
-	hr = pDevice->CreatePixelShader(pCompilePS->GetBufferPointer(), pCompilePS->GetBufferSize(), NULL,
-		&shaderBundle[SHADER_CRT].pPixelShader_);
-	SAFE_RELEASE(pCompilePS);
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"ピクセルシェーダの作成に失敗しました", L"エラー", MB_OK);
-		return hr;
-	}
-
-	//ラスタライザ作成
-	D3D11_RASTERIZER_DESC rdc = {};
-	rdc.CullMode = D3D11_CULL_BACK;    //多角形の裏側は描画しない(カリング)
-	rdc.FillMode = D3D11_FILL_SOLID;   //多角形の内部を塗りつぶす
-	rdc.FrontCounterClockwise = FALSE; //反時計回りを表にするかどうか(がfalseなので時計周りが表)
-	hr = pDevice->CreateRasterizerState(&rdc, &shaderBundle[SHADER_CRT].pRasterizerState_);
 	if (FAILED(hr)) {
 		MessageBox(NULL, L"ラスタライザの作成に失敗しました", L"エラー", MB_OK);
 		return hr;

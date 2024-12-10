@@ -80,6 +80,7 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 diffuse;
     float4 ambient;
     float4 ambentSource = { 0.2, 0.2, 0.2, 1.0 };
+    //float4 ambentSource = { 0.5, 0.5, 0.5, 1.0 };
     float3 dir = normalize(lightPosition.xyz - inData.wpos.xyz);//ピクセル位置の織ゴンの３次元座標 = wpos
     //inData.normal.z = 0;
     float color = saturate(dot(normalize(inData.normal.xyz), dir));

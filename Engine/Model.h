@@ -13,7 +13,6 @@ namespace Model
 		Transform transform_;
 		//FileName
 		std::string filename_;
-		ModelData():pFbx_(nullptr), filename_(""){}
 	};
 
 	//ƒ‚ƒfƒ‹‚Ìˆê——‚ð•Û‘¶‚·‚é”z—ñ(Vector or List)

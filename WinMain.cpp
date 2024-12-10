@@ -8,7 +8,7 @@
 #include "Engine/Model.h"
 
 //リンカ
-#pragma comment(lib,"d3d11.lib")
+//#pragma comment(lib,"d3d11.lib")
 #pragma comment(lib,"winmm.lib")
 
 //定数宣言
@@ -68,14 +68,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
   //Direct3D初期化
 	HRESULT hr = Direct3D::Initialize(winW, winH, hWnd);
 	if (FAILED(hr)) {
-		return 0;
+		PostQuitMessage(0);
 	}
 
-  //DirectInputの初期化
-	Input::Initialize(hWnd);
-
-  //カメラの初期化
+	//カメラの初期化
 	Camera::Initialize();
+
+    //DirectInputの初期化
+	Input::Initialize(hWnd);
 
 	pRootJob = new RootJob(nullptr);
 	pRootJob->Initialize();
@@ -123,11 +123,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 
 			timeEndPeriod(1);
 
-			//入力情報の更新
-			Input::Update();
-
 			//カメラを更新
 			Camera::Update();
+
+			//入力情報の更新
+			Input::Update();
 
 			//ルートジョブからつながる全てのオブジェクトを
 			//Updateする
@@ -146,6 +146,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 	}
 	Model::Release();
 	pRootJob->ReleaseSub();
+	SAFE_DELETE(pRootJob);
 	Input::Release();
 	Direct3D::Release;
 	return 0;
