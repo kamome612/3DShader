@@ -12,7 +12,7 @@ class Stage :
 {
 private:
 	int hModel_;
-	//int Model_;
+	int hRoom_;
 	int hGround_;
 	ID3D11Buffer* pConstantBuffer_;
 	void InitConstantBuffer();

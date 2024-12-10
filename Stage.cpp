@@ -44,12 +44,13 @@ void Stage::Initialize()
 	assert(hModel_ >= 0);
 	hGround_ = Model::Load("Assets\\roadb.fbx");
 	assert(hGround_ >= 0);
+	hRoom_ = Model::Load("Assets\\room.fbx");
+	assert(hRoom_ >= 0);
+	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
+	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
 
-	/*Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
-	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });*/
-
-	Camera::SetPosition(XMFLOAT3{ 0, 5, -5 });
-	Camera::SetTarget(XMFLOAT3{ 0,1,0 });
+	/*Camera::SetPosition(XMFLOAT3{ 0, 5, -5 });
+	Camera::SetTarget(XMFLOAT3{ 0,1,0 });*/
 
 	InitConstantBuffer();
 }
@@ -92,6 +93,19 @@ void Stage::Update()
 	}
 
 	//コンスタントバッファのシェーへのコンスタントバッファのセットを書くよ
+	CONSTBUFFER_STAGE cb;
+	cb.lightPosition = Direct3D::GetLightPos();
+	XMStoreFloat4(&cb.eyePosition,Camera::GetPosition());
+
+	D3D11_MAPPED_SUBRESOURCE pdata;
+	Direct3D::pContext->Map(pConstantBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &pdata); // GPUからのデータアクセスを止める
+	memcpy_s(pdata.pData, pdata.RowPitch, (void*)(&cb), sizeof(cb)); // データを値を送る
+	Direct3D::pContext->Unmap(pConstantBuffer_, 0); //再開
+
+	//コンスタントバッファ
+	Direct3D::pContext->VSSetConstantBuffers(1, 1, &pConstantBuffer_); //頂点シェーダー用 
+	Direct3D::pContext->PSSetConstantBuffers(1, 1, &pConstantBuffer_); //ピクセルシェーダー用
+	
 }
 
 void Stage::Draw()
@@ -106,8 +120,10 @@ void Stage::Draw()
 	Transform gTrs;
 	gTrs.position_ = { 0,0,0 };
 	gTrs.rotate_ = { 0,0,0 };
-	Model::SetTransform(hGround_, gTrs);
-	Model::Draw(hGround_);
+	Model::SetTransform(hRoom_, gTrs);
+	Model::Draw(hRoom_);
+	/*Model::SetTransform(hGround_, gTrs);
+	Model::Draw(hGround_);*/
 
 
 	//XMFLOAT4 p = Direct3D::GetLightPos();

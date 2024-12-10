@@ -44,6 +44,11 @@ void Camera::SetPosition(XMFLOAT3 _position)
 	SetPosition(XMLoadFloat3(&_position));
 }
 
+XMVECTOR Camera::GetPosition()
+{
+	return position_;
+}
+
 //è≈ì_Çê›íË
 void Camera::SetTarget(XMVECTOR _target)
 {

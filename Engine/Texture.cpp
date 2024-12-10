@@ -2,7 +2,7 @@
 #include "Direct3D.h"
 #include <DirectXTex.h>
 
-using namespace DirectX;
+#pragma comment(lib,"DirectXTex.lib")
 
 Texture::Texture()
 	:pSampler_(nullptr),pSRV_(nullptr)
@@ -11,10 +11,13 @@ Texture::Texture()
 
 Texture::~Texture()
 {
+	Release();
 }
 
 HRESULT Texture::Load(string fileName)
 {
+	using namespace DirectX;
+
 	TexMetadata metadata; //画像の付属情報
 
 	ScratchImage image;   //画像本体
@@ -22,8 +25,17 @@ HRESULT Texture::Load(string fileName)
 	HRESULT hr = S_OK;
 
 	//実際に読んでゆくぅ　　　　　 
-	std::wstring wstr(fileName.begin(), fileName.end()); //string => wchar_t* の変換 LPCWSTR == cont wchar_t*
-	hr = LoadFromWICFile(wstr.c_str(), WIC_FLAGS::WIC_FLAGS_NONE, &metadata, image);
+	//std::wstring wstr(fileName.begin(), fileName.end()); //string => wchar_t* の変換 LPCWSTR == cont wchar_t*
+	//hr = LoadFromWICFile(wstr.c_str(), WIC_FLAGS::WIC_FLAGS_NONE, &metadata, image);
+
+	wchar_t wtext[FILENAME_MAX];
+	size_t ret;
+	mbstowcs_s(&ret, wtext, fileName.c_str(), fileName.length());
+	hr = LoadFromWICFile(wtext, WIC_FLAGS::WIC_FLAGS_NONE, &metadata, image);
+	if (FAILED(hr))
+	{
+		return E_FAIL;
+	}
 
 	//サンプラーの設定をしていく
 	D3D11_SAMPLER_DESC  SamDesc;
@@ -32,7 +44,11 @@ HRESULT Texture::Load(string fileName)
 	SamDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	SamDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	SamDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	Direct3D::pDevice->CreateSamplerState(&SamDesc, &pSampler_);
+	hr = Direct3D::pDevice->CreateSamplerState(&SamDesc, &pSampler_);
+	if (FAILED(hr))
+	{
+		return E_FAIL;
+	}
 
 	//シェーダーリソースビュー
 
@@ -46,11 +62,9 @@ HRESULT Texture::Load(string fileName)
 
 	if (FAILED(hr))
 	{
-
 		return S_FALSE;
-
 	}
-	return hr;
+	return S_OK;
 }
 
 void Texture::Release()

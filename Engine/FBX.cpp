@@ -237,21 +237,36 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			/*pMaterialList_[i].pTexture = new Texture;
 			HRESULT hr = pMaterialList_[i].pTexture->Load(name);
 			assert(hr == S_OK);*/
-			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
+			FbxSurfacePhong* pMaterial = (FbxSurfacePhong*)pNode->GetMaterial(i);
 			FbxDouble diffuse = pMaterial->DiffuseFactor;
+			FbxDouble3 ambient = pMaterial->Ambient;
 			pMaterialList_[i].factor = XMFLOAT4((float)diffuse, (float)diffuse,
 				                                (float)diffuse,(float)diffuse);
+			pMaterialList_[i].ambient = { ambient[0],ambient[1],ambient[2],1.0f };
+			//あなたはフォンのパラメータを持っていますか？
+			if (pMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
+				FbxDouble3 specular = pMaterial->Specular;
+				FbxDouble shininess = pMaterial->Shininess; //４つとも同じ値でセット
+			}
+			//ここで、自分のpMaterialList_[i]に値を設定
 		}
 		//テクスチャ無し
 		else {
 			pMaterialList_[i].pTexture = nullptr;
 			//this part are witten after
 			//マテリアルの色 拡散反射と、アンビエントのみのシェーディングモデル
-			FbxSurfaceLambert* pMaterial = (FbxSurfaceLambert*)pNode->GetMaterial(i);
+			FbxSurfacePhong* pMaterial = (FbxSurfacePhong*)pNode->GetMaterial(i);
 			FbxDouble3  diffuse = pMaterial->Diffuse;
 			pMaterialList_[i].diffuse = XMFLOAT4((float)diffuse[0], (float)diffuse[1], (float)diffuse[2], 1.0f);
 			FbxDouble factor = pMaterial->DiffuseFactor;
 			pMaterialList_[i].factor = XMFLOAT4((float)factor, (float)factor,(float)factor,(float)factor);
+			FbxDouble3 ambient = pMaterial->Ambient;
+			pMaterialList_[i].ambient = { ambient[0],ambient[1],ambient[2],1.0f };
+			//あなたはフォンのパラメータを持っていますか？
+			if (pMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
+				FbxDouble3 specular = pMaterial->Specular;
+				FbxDouble shininess = pMaterial->Shininess; //４つとも同じ値でセット
+			}
 		}
 	}
 }
