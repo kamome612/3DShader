@@ -16,6 +16,9 @@ cbuffer gModel:register(b0)
     float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
     float4 factor; //ディフューズファクター(diffuseFactor)
+    float4 ambientColor;
+    float4 specularColor;
+    float4 shininess;
     bool isTextured; // テクスチャ貼ってあるかどうか
     
     //float4 Attenuation;
@@ -32,10 +35,11 @@ cbuffer gStage:register(b1)
 //───────────────────────────────────────
 struct VS_OUT
 {
-    float4 wpos : POSITION;
+    float4 wpos : POSITION0;
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
     float4 normal : NORMAL;
+    float4 eyev : POSITION1;
     
     //float4 norw : NORMALO;
     //float4 cos_alpha : COLOR; //色（明るさ）
@@ -60,6 +64,7 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     outData.wpos = wpos;
     outData.uv = uv.xy;
     outData.normal = wnormal;
+    outData.eyev = eyePosition - wpos;
     
     //float dir = normalize(lightPosition - wpos);
     //outData.color = clamp(dot(normalize(wnormal), dir), 0, 1);
@@ -93,6 +98,9 @@ float4 PS(VS_OUT inData) : SV_Target
     float len = length(lightPosition.xyz - inData.wpos.xyz);
     float dTerm = 1.0 / (k.x + k.y * len + k.z * len * len);
     
+    float4 R = reflect(normalize(inData.normal), normalize(float4(-dir, 0.0)));
+    float4 specular = pow(saturate(dot(R, normalize(-inData.eyev))), shininess) * specularColor;
+    
     if (isTextured == false)
     {
         diffuse = diffuseColor * color * dTerm * factor.x;
@@ -103,7 +111,7 @@ float4 PS(VS_OUT inData) : SV_Target
         diffuse = g_texture.Sample(g_sampler, inData.uv)* color * dTerm * factor.x;
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource;
     }
-    return diffuse + ambient;
+    return diffuse + specular + ambient;
     
     //float3 dir;
     //float len;

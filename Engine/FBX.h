@@ -36,6 +36,9 @@ class FBX
 		XMFLOAT4    diffuseColor;//RGB‚ÌŠgU”½ËŒW”(F)
 		//XMFLOAT4    lightPosition;//ŒõŒ¹ˆÊ’u
 		XMFLOAT4    diffuseFactor;//ŠgUŒõ‚Ì”½ËŒW”
+		XMFLOAT4    ambientColor;
+		XMFLOAT4    specularColor;
+		XMFLOAT4    shininess;
 		int         isTextured;
 	};
 

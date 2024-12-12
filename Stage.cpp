@@ -25,6 +25,7 @@ Stage::Stage(GameObject* parent)
 {
 	hModel_ = -1;
 	hGround_ = -1;
+	hHole_ = -1;
 }
 
 Stage::~Stage()
@@ -46,6 +47,8 @@ void Stage::Initialize()
 	assert(hGround_ >= 0);
 	hRoom_ = Model::Load("Assets\\room.fbx");
 	assert(hRoom_ >= 0);
+	hHole_ = Model::Load("Assets\\wakka.fbx");
+	assert(hHole_ >= 0);
 	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
 	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
 
@@ -113,7 +116,7 @@ void Stage::Draw()
 	Transform ltr;
 	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,
 					 Direct3D::GetLightPos().z };
-	ltr.scale_ = { 0.5,0.5,0.5 };
+	ltr.scale_ = { 0.25,0.25,0.25 };
 	Model::SetTransform(hModel_, ltr);
 	Model::Draw(hModel_);
 
@@ -122,37 +125,13 @@ void Stage::Draw()
 	gTrs.rotate_ = { 0,0,0 };
 	Model::SetTransform(hRoom_, gTrs);
 	Model::Draw(hRoom_);
-	/*Model::SetTransform(hGround_, gTrs);
-	Model::Draw(hGround_);*/
-
-
-	//XMFLOAT4 p = Direct3D::GetLightPos();
-	//transform_.position_ = { p.x,p.y,p.z };
-	////Šm‚©‚ß‚é‚æ‚¤
-	//Transform ltr;
-	//ltr.position_ = { 0,0,0 };
-	//Model::SetTransform(hGround_, ltr);
-	//Model::Draw(hGround_);
-	//Model::SetTransform(hModel_, transform_);
-	//Model::Draw(hModel_);
-
-	/*Transform ltr;
-	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };
-	ltr.scale_ = { 0.1,0.1,0.1 };
-	Model::SetTransform(hModel_[0], ltr);
-	Model::Draw(hModel_[0]);*/
-
-	//Transform ltr;
-	//ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };
-	////ltr.scale_ = { 0.1,0.1,0.1 };
-	//Model::SetTransform(Model_, ltr);
-	//Model::Draw(Model_);
-
-	//Transform tr;
-	//tr.position_ = { 0,0,0 };
-	//tr.rotate_ = { 0,0,0 };
-	//Model::SetTransform(hGround_, tr);
-	//Model::Draw(hGround_);
+	
+	static Transform hTrs;
+	hTrs.scale_ = { 0.25,0.25,0.25 };
+	hTrs.position_ = { 0, 0.5, 0 };
+	hTrs.rotate_.y += 0.1;
+	Model::SetTransform(hHole_, hTrs);
+	Model::Draw(hHole_);
 }
 
 void Stage::Release()
