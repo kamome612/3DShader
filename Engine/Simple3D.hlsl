@@ -15,7 +15,7 @@ cbuffer global
     float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
     float4 lightPosition; //平行光源の方向ベクトル
-    float2 factor;       //ディフューズファクター(diffuseFactor)
+    float2 factor; //ディフューズファクター(diffuseFactor)
     bool isTextured; // テクスチャ貼ってあるかどうか
 };
 
@@ -46,7 +46,7 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
     float4 light = lightPosition;
-    light = normalize(light);//単位ベクトル化
+    light = normalize(light); //単位ベクトル化
     outData.color = clamp(dot(normal, light), 0, 1);
     
     //normal = mul(normal, matW);

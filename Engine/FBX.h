@@ -53,6 +53,7 @@ class FBX
 	int vertexCount_;	//頂点数
 	int polygonCount_;	//ポリゴン数
 	int materialCount_;	//マテリアルの個数
+	int state_;
 
 	ID3D11Buffer* pVertexBuffer_;//頂点バッファ用メモリ
 	ID3D11Buffer** pIndexBuffer_; //インデックスバッファ用メモリ

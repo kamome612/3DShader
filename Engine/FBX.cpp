@@ -5,12 +5,14 @@
 #include "Texture.h"
 #include <vector>
 #include <filesystem>
+#include "Input.h"
 
 namespace fs = std::filesystem;
 
 FBX::FBX()
 	:vertexCount_(0),polygonCount_(0),materialCount_(0),
-	pVertexBuffer_(nullptr),pIndexBuffer_(nullptr),pConstantBuffer_(nullptr)
+	pVertexBuffer_(nullptr),pIndexBuffer_(nullptr),pConstantBuffer_(nullptr),
+	state_(2)
 {
 }
 
@@ -45,7 +47,7 @@ HRESULT FBX::Load(std::string fileName)
 	basePath = cPath;
 
 	//引数のfileNameからディレクトリ部分を取得
-	char dir[MAX_PATH];
+	//char dir[MAX_PATH];
 	string subDir("Assets");
 	fs::path subPath(cPath.string() +"\\" +  subDir);
 	assert(fs::exists(subPath));
@@ -61,7 +63,7 @@ HRESULT FBX::Load(std::string fileName)
 	//_splitpath_s(fileName.c_str(), nullptr, 0, dir, MAX_PATH, nullptr, 0, nullptr, 0);
 
 	//カレントディレクトリ変更
-    SetCurrentDirectoryA(dir);
+    //SetCurrentDirectory(dir);
 
 	InitVertex(mesh);     //頂点バッファ準備
 	InitIndex(mesh);      //インデックスバッファ準備
@@ -286,8 +288,31 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 
 void FBX::Draw(Transform& transform)
 {
+	if (Input::IsKeyDown(DIK_P)) {
+		if (state_ == SHADER_POINT) {
+			state_ = 1;
+		}
+		else {
+			state_ = 2;
+		}
+	}
+
+	switch (state_)
+	{
+	case 0:
+		Direct3D::SetShader(SHADER_2D);
+		break;
+	case 1:
+		Direct3D::SetShader(SHADER_3D);
+		break;
+	case 2:
+		Direct3D::SetShader(SHADER_POINT);
+		break;
+	default:
+		break;
+	}
 	//Direct3D::SetShader(SHADER_3D);
-	Direct3D::SetShader(SHADER_POINT);
+	//Direct3D::SetShader(SHADER_POINT);
 	transform.Calculation();//トランスフォームを計算
 
 	// インデックスバッファーをセット
