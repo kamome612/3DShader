@@ -130,8 +130,10 @@
     <FxCompile Include="Engine\Simple3D.hlsl">
       <Filter>Engine\Shader</Filter>
     </FxCompile>
-    <FxCompile Include="CrtRender.hlsl" />
     <FxCompile Include="PointLightShader.hlsl">
+      <Filter>Engine\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ToonShader.hlsl">
       <Filter>Engine\Shader</Filter>
     </FxCompile>
   </ItemGroup>
