@@ -289,7 +289,7 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 void FBX::Draw(Transform& transform)
 {
 	if (Input::IsKeyDown(DIK_P)) {
-		if (state_ == SHADER_POINT) {
+		if (state_ == 2) {
 			state_ = 1;
 		}
 		else {

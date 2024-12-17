@@ -12,12 +12,20 @@ cbuffer global
 {
     //変換行列、視点、光源
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
+    float4x4 matW; //ワールド変換マトリクス
     float4x4 matNormal; //法線をワールド座標に対応させる行列＝回転＊スケール
     float4 diffuseColor; // ディフューズカラー（マテリアルの色）
-    float4 lightPosition; //平行光源の方向ベクトル
-    float2 factor; //ディフューズファクター(diffuseFactor)
+    float4 factor; //ディフューズファクター(diffuseFactor)
+    float4 ambientColor;
+    float4 specularColor;
+    float4 shininess;
     bool isTextured; // テクスチャ貼ってあるかどうか
 };
+
+cbuffer gStage : register(b1)
+{
+    float4 lightPosition;
+}
 
 //───────────────────────────────────────
 // 頂点シェーダー出力＆ピクセルシェーダー入力データ構造体
@@ -49,12 +57,6 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     light = normalize(light); //単位ベクトル化
     outData.color = clamp(dot(normal, light), 0, 1);
     
-    //normal = mul(normal, matW);
-    //normal = normalize(normal);
-    //normal.w = 0;
-    //light.w = 0;
-    //outData.cos_alpha = dot(normal, light);
-    //outData.cos_alpha = clamp(dot(normal, light), 0, 1);
 	//まとめて出力
     return outData;
 }
@@ -64,22 +66,22 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 //───────────────────────────────────────
 float4 PS(VS_OUT inData) : SV_Target
 {
-    //float4 myUv = { 0, 125, 0.25, 0, 0 };
+    ////float2 myUv = { 0, 125, 0.25, 0, 0 };
     //float4 Id = { 1.0, 1.0, 1.0, 0.0 };
     //float4 Kd = g_texture.Sample(g_sampler, inData.uv);
-    //float cos_alpha = inData.cos_alpha;
-    //float4 ambentSource = { 0.5, 0.5, 0.5, 0.0 };//環境光の強さ
-    //if(isTextured == false)
+    //float4 ambentSource = { 0.5, 0.5, 0.5, 0.0 }; //環境光の強さ
+    //if (isTextured == false)
     //{
-    //    return Id *  diffuseColor  * cos_alpha + Id * diffuseColor * ambentSource;
+    //    return Id * diffuseColor * inData.color + Id * diffuseColor * ambentSource;
     //}
     //else
     //{
-    //    return Id * Kd * cos_alpha + Id * Kd * ambentSource;
+    //    return Id * Kd * inData.color + Id * Kd * ambentSource;
     //}
+    //return g_texture.Sample(g_sampler, inData.uv);
     
-    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
-    float4 ambentSource = float4(0.0, 0.0, 0.0, 1.0);
+    //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
+    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 diffuse;
     float4 ambient;
     if (isTextured == false)
@@ -93,5 +95,4 @@ float4 PS(VS_OUT inData) : SV_Target
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
     return diffuse + ambient;
-    //return g_texture.Sample(g_sampler, myUv);
 }
