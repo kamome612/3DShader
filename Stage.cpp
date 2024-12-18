@@ -25,8 +25,11 @@ Stage::Stage(GameObject* parent)
 {
 	hModel_ = -1;
 	hGround_ = -1;
-	hHole_ = -1;
 	hRoom_ = -1;
+	hPhong_ = -1;
+	hPhongT_ = -1;
+	hLambert_ = -1;
+	hLambertT_ = -1;
 }
 
 Stage::~Stage()
@@ -48,8 +51,14 @@ void Stage::Initialize()
 	assert(hGround_ >= 0);
 	hRoom_ = Model::Load("Assets\\room.fbx");
 	assert(hRoom_ >= 0);
-	hHole_ = Model::Load("Assets\\Phong.fbx");
-	assert(hHole_ >= 0);
+	hPhong_ = Model::Load("Assets\\Phong.fbx");
+	assert(hPhong_ >= 0);
+	hPhongT_ = Model::Load("Assets\\PhongT.fbx");
+	assert(hPhongT_ >= 0);
+	hLambert_ = Model::Load("Assets\\Lambert.fbx");
+	assert(hLambert_ >= 0);
+	hLambertT_ = Model::Load("Assets\\LambertT.fbx");
+	assert(hLambertT_ >= 0);
 	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
 	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
 
@@ -129,10 +138,19 @@ void Stage::Draw()
 	
 	static Transform hTrs;
 	hTrs.scale_ = { 0.25,0.25,0.25 };
-	hTrs.position_ = { 0, 0.5, 0 };
+	hTrs.position_ = { -1, 1.5, 0 };
 	hTrs.rotate_.y += 0.1;
-	Model::SetTransform(hHole_, hTrs);
-	Model::Draw(hHole_);
+	Model::SetTransform(hPhong_, hTrs);
+	Model::Draw(hPhong_);
+	hTrs.position_ = { 1, 1.5, 0 };
+	Model::SetTransform(hPhongT_, hTrs);
+	Model::Draw(hPhongT_);
+	hTrs.position_ = { -1, 0.5, 0 };
+	Model::SetTransform(hLambert_, hTrs);
+	Model::Draw(hLambert_);
+	hTrs.position_ = { 1, 0.5, 0 };
+	Model::SetTransform(hLambertT_, hTrs);
+	Model::Draw(hLambertT_);
 }
 
 void Stage::Release()

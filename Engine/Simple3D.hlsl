@@ -31,7 +31,7 @@ cbuffer gStage : register(b1)
 // 頂点シェーダー出力＆ピクセルシェーダー入力データ構造体
 //───────────────────────────────────────
 struct VS_OUT
-{
+{   
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
     float4 color : COLOR; //色（明るさ）
@@ -81,6 +81,7 @@ float4 PS(VS_OUT inData) : SV_Target
     //return g_texture.Sample(g_sampler, inData.uv);
     
     //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
+   
     float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 diffuse;
     float4 ambient;

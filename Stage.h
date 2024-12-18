@@ -14,7 +14,10 @@ private:
 	int hModel_;
 	int hRoom_;
 	int hGround_;
-	int hHole_;
+	int hPhong_;
+	int hPhongT_;
+	int hLambert_;
+	int hLambertT_;
 	ID3D11Buffer* pConstantBuffer_;
 	void InitConstantBuffer();
 
