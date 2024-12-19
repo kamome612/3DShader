@@ -65,7 +65,7 @@ class FBX
 	void InitIndex(fbxsdk::FbxMesh* mesh);
 	void InitConstantBuffer();
 	void InitMaterial(fbxsdk::FbxNode* pNode);
-
+	Texture* pToonTex_;
 public:
 	FBX();
 	HRESULT Load(std::string fileName);

@@ -4,6 +4,8 @@
 Texture2D g_texture : register(t0); //テクスチャー
 SamplerState g_sampler : register(s0); //サンプラー
 
+Texture2D g_toon_texture : register(t1); //テクスチャー
+
 //───────────────────────────────────────
 // コンスタントバッファ
 // DirectX 側から送信されてくる、ポリゴン頂点以外の諸情報の定義
@@ -106,7 +108,7 @@ float4 PS(VS_OUT inData) : SV_Target
     //return g_texture.Sample(g_sampler, inData.uv);
     
     float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
-    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
+    float4 ambentSource = float4(0.2, 0.2, 0.2, 1.0);
     float4 diffuse;
     float4 ambient;
     
@@ -115,42 +117,46 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 n2 = float4(2 / 4.0, 2 / 4.0, 2 / 4.0, 1);
     float4 n3 = float4(3 / 4.0, 3 / 4.0, 3 / 4.0, 1);
     float4 n4 = float4(4 / 4.0, 4 / 4.0, 4 / 4.0, 1);
-    float tI = 0.1 * step(n1, NL) + 0.2 * step(n2, NL) + 
-               0.3 * step(n3, NL) + 0.4 * step(n4, NL);
+    float tI = 0.1 * step(n1, inData.color) + 0.2 * step(n2, inData.color) +
+               0.3 * step(n3, inData.color); //+ 0.4 * step(n4, NL);
     
-    float OutColor;
-    if (NL.x < 1.0f / 4)
-    {
-        OutColor = float4(0.0f / 4.0f, 0.0f / 4.0f, 0.0f / 4.0f, 1.0f);
+    //float OutColor;
+    //if (NL.x < 1.0f / 4)
+    //{
+    //    OutColor = float4(0.0f / 4.0f, 0.0f / 4.0f, 0.0f / 4.0f, 1.0f);
 
-    }
-    else if (NL.x < 2.0f / 4)
-    {
-        OutColor = float4(1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f, 1.0f);
-    }
-    else if (NL.x < 3.0f / 4)
-    {
-        OutColor = float4(2.0f / 4.0f, 2.0f / 4.0f, 2.0f / 4.0f, 1.0f);
-    }
-    else if (NL.x < 1.0f)
-    {
-        OutColor = float4(3.0f / 4.0f, 3.0f / 4.0f, 3.0f / 4.0f, 1.0f);
-    }
-    else
-    {
-        OutColor = float4(4.0f / 4.0f, 4.0f / 4.0f, 4.0f / 4.0f, 1.0f);
-    }
+    //}
+    //else if (NL.x < 2.0f / 4)
+    //{
+    //    OutColor = float4(1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f, 1.0f);
+    //}
+    //else if (NL.x < 3.0f / 4)
+    //{
+    //    OutColor = float4(2.0f / 4.0f, 2.0f / 4.0f, 2.0f / 4.0f, 1.0f);
+    //}
+    //else if (NL.x < 1.0f)
+    //{
+    //    OutColor = float4(3.0f / 4.0f, 3.0f / 4.0f, 3.0f / 4.0f, 1.0f);
+    //}
+    //else
+    //{
+    //    OutColor = float4(4.0f / 4.0f, 4.0f / 4.0f, 4.0f / 4.0f, 1.0f);
+    //}
     
     if (isTextured == false)
     {
-        diffuse = diffuseColor * inData.color * factor.x;
-        ambient = diffuseColor * ambentSource * factor.x;
+        //diffuse = diffuseColor * inData.color * factor.x;
+        diffuse = diffuseColor * tI * factor.x;
+        ambient = diffuseColor * ambentSource;
     }
     else
     {
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
-        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
+        //diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
+        diffuse = g_texture.Sample(g_sampler, inData.uv) * tI * factor.x;
+        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource;
     }
-    return diffuse + ambient;
-    //return OutColor;
+    //return diffuse + ambient;
+    
+    float2 uv = float2(tI.x, 0);
+    return g_toon_texture.Sample(g_sampler, uv);
 }
