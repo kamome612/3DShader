@@ -35,6 +35,7 @@ struct VS_OUT
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
     float4 color : COLOR; //色（明るさ）
+    float4 normal : NORMAL;
 };
 
 //───────────────────────────────────────
@@ -50,13 +51,37 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     outData.pos = mul(pos, matWVP);
     outData.uv = uv;
 
-    normal = mul(normal, matNormal);
+    outData.normal = mul(normal, matNormal);
     //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
     float4 light = lightPosition;
     light = normalize(light); //単位ベクトル化
     outData.color = clamp(dot(normal, light), 0, 1);
     
+    //float OutColor;
+    //if (outData.color.x < 1 / 4)
+    //{
+    //    OutColor = float4(0 / 4.0f, 0 / 4.0f, 0 / 4.0f, 1.0);
+
+    //}
+    //else if (outData.color.x < 2 / 4)
+    //{
+    //    OutColor = float4(1 / 4.0f, 1 / 4.0f, 1 / 4.0f, 1.0);
+    //}
+    //else if (outData.color.x < 3 / 4)
+    //{
+    //    OutColor = float4(2 / 4.0f, 2 / 4.0f, 2 / 4.0f, 1.0);
+    //}
+    //else if (outData.color.x < 1)
+    //{
+    //    OutColor = float4(3 / 4.0f, 3 / 4.0f, 3 / 4.0f, 1.0);
+    //}
+    //else
+    //{
+    //    OutColor = float4(4 / 4.0f, 4 / 4.0f, 4 / 4.0f, 1.0);
+    //}
+    
+    //outData.color = OutColor;
 	//まとめて出力
     return outData;
 }
@@ -80,10 +105,42 @@ float4 PS(VS_OUT inData) : SV_Target
     //}
     //return g_texture.Sample(g_sampler, inData.uv);
     
-    //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
+    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
     float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 diffuse;
     float4 ambient;
+    
+    float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
+    float4 n1 = float4(1 / 4.0, 1 / 4.0, 1 / 4.0, 1);
+    float4 n2 = float4(2 / 4.0, 2 / 4.0, 2 / 4.0, 1);
+    float4 n3 = float4(3 / 4.0, 3 / 4.0, 3 / 4.0, 1);
+    float4 n4 = float4(4 / 4.0, 4 / 4.0, 4 / 4.0, 1);
+    float tI = 0.1 * step(n1, NL) + 0.2 * step(n2, NL) + 
+               0.3 * step(n3, NL) + 0.4 * step(n4, NL);
+    
+    float OutColor;
+    if (NL.x < 1.0f / 4)
+    {
+        OutColor = float4(0.0f / 4.0f, 0.0f / 4.0f, 0.0f / 4.0f, 1.0f);
+
+    }
+    else if (NL.x < 2.0f / 4)
+    {
+        OutColor = float4(1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f, 1.0f);
+    }
+    else if (NL.x < 3.0f / 4)
+    {
+        OutColor = float4(2.0f / 4.0f, 2.0f / 4.0f, 2.0f / 4.0f, 1.0f);
+    }
+    else if (NL.x < 1.0f)
+    {
+        OutColor = float4(3.0f / 4.0f, 3.0f / 4.0f, 3.0f / 4.0f, 1.0f);
+    }
+    else
+    {
+        OutColor = float4(4.0f / 4.0f, 4.0f / 4.0f, 4.0f / 4.0f, 1.0f);
+    }
+    
     if (isTextured == false)
     {
         diffuse = diffuseColor * inData.color * factor.x;
@@ -95,4 +152,5 @@ float4 PS(VS_OUT inData) : SV_Target
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
     return diffuse + ambient;
+    //return OutColor;
 }

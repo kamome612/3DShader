@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 FBX::FBX()
 	:vertexCount_(0),polygonCount_(0),materialCount_(0),
 	pVertexBuffer_(nullptr),pIndexBuffer_(nullptr),pConstantBuffer_(nullptr),
-	state_(2)
+	state_(3)
 {
 }
 
@@ -308,6 +308,8 @@ void FBX::Draw(Transform& transform)
 	case 2:
 		Direct3D::SetShader(SHADER_POINT);
 		break;
+	case 3:
+		Direct3D::SetShader(SHADER_TOON);
 	default:
 		break;
 	}

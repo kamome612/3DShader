@@ -91,9 +91,11 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 ambient;
     float4 ambentSource = { 0.2, 0.2, 0.2, 1.0 };
     //float4 ambentSource = { 0.5, 0.5, 0.5, 1.0 };
-    float3 dir = normalize(lightPosition.xyz - inData.wpos.xyz);//ピクセル位置のポリゴンの３次元座標 = wpos
+    float3 dir = normalize(lightPosition.xyz - inData.wpos.xyz); //ピクセル位置のポリゴンの３次元座標 = wpos
     //inData.normal.z = 0;
-    float color = saturate(dot(normalize(inData.normal.xyz), dir));
+    float color = saturate(dot(normalize(inData.normal.xyz), dir)); //0~1 -> 0/4.1/4,2/4,3/4,4/4
+    
+    
     float3 k = { 0.2f, 0.2f, 1.0f };
     float len = length(lightPosition.xyz - inData.wpos.xyz);
     float dTerm = 1.0 / (k.x + k.y * len + k.z * len * len);
