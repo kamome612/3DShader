@@ -130,25 +130,25 @@ void Stage::Draw()
 	Model::SetTransform(hModel_, ltr);
 	Model::Draw(hModel_);
 
-	/*Transform gTrs;
+	Transform gTrs;
 	gTrs.position_ = { 0,0,0 };
 	gTrs.rotate_ = { 0,0,0 };
 	Model::SetTransform(hRoom_, gTrs);
-	Model::Draw(hRoom_);*/
+	Model::Draw(hRoom_);
 	
 	static Transform hTrs;
 	hTrs.scale_ = { 0.25,0.25,0.25 };
-	hTrs.position_ = { -1, 1.5, 0 };
+	hTrs.position_ = { -0.5, 1.5, 0 };
 	hTrs.rotate_.y += 0.1;
 	Model::SetTransform(hPhong_, hTrs);
 	Model::Draw(hPhong_);
-	hTrs.position_ = { 1, 1.5, 0 };
+	hTrs.position_ = { 0.5, 1.5, 0 };
 	Model::SetTransform(hPhongT_, hTrs);
 	Model::Draw(hPhongT_);
-	hTrs.position_ = { -1, 0.5, 0 };
+	hTrs.position_ = { -0.5, 0.5, 0 };
 	Model::SetTransform(hLambert_, hTrs);
 	Model::Draw(hLambert_);
-	hTrs.position_ = { 1, 0.5, 0 };
+	hTrs.position_ = { 0.5, 0.5, 0 };
 	Model::SetTransform(hLambertT_, hTrs);
 	Model::Draw(hLambertT_);
 }

@@ -25,6 +25,7 @@ cbuffer global
 cbuffer gStage : register(b1)
 {
     float4 lightPosition;
+    float4 eyePosition;
 }
 
 //───────────────────────────────────────
@@ -32,9 +33,12 @@ cbuffer gStage : register(b1)
 //───────────────────────────────────────
 struct VS_OUT
 {   
+    float4 wpos : POSITION0;
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
     float4 color : COLOR; //色（明るさ）
+    float4 normal : NORMAL;
+    float4 eyev : POSITION1;
 };
 
 //───────────────────────────────────────
@@ -49,14 +53,15 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 	//スクリーン座標に変換し、ピクセルシェーダーへ
     outData.pos = mul(pos, matWVP);
     outData.uv = uv;
-
+    outData.wpos = mul(pos, matWVP);
     normal = mul(normal, matNormal);
     //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
     float4 light = lightPosition;
     light = normalize(light); //単位ベクトル化
     outData.color = clamp(dot(normal, light), 0, 1);
-    
+    outData.normal = normal;
+    outData.eyev = eyePosition - outData.wpos;
 	//まとめて出力
     return outData;
 }
@@ -82,9 +87,12 @@ float4 PS(VS_OUT inData) : SV_Target
     
     //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
    
-    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
+    float4 ambentSource = float4(0.2, 0.2, 0.2, 1.0);
     float4 diffuse;
     float4 ambient;
+    float3 dir = normalize(lightPosition.xyz - inData.wpos.xyz);
+    float4 R = reflect(normalize(inData.normal), normalize(float4(-dir, 0.0)));
+    float4 specular = pow(saturate(dot(R, normalize(-inData.eyev))), shininess) * specularColor;
     if (isTextured == false)
     {
         diffuse = diffuseColor * inData.color * factor.x;
@@ -95,5 +103,5 @@ float4 PS(VS_OUT inData) : SV_Target
         diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
     }
-    return diffuse + ambient;
+    return diffuse + specular + ambient;
 }
