@@ -289,12 +289,7 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 void FBX::Draw(Transform& transform)
 {
 	if (Input::IsKeyDown(DIK_P)) {
-		if (state_ == 2) {
-			state_ = 1;
-		}
-		else {
-			state_ = 2;
-		}
+		state_ = state_ % 2 + 1;
 	}
 
 	switch (state_)
