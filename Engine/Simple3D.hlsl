@@ -4,6 +4,8 @@
 Texture2D g_texture : register(t0); //テクスチャー
 SamplerState g_sampler : register(s0); //サンプラー
 
+Texture2D g_toon_texture : register(t1);
+
 //───────────────────────────────────────
 // コンスタントバッファ
 // DirectX 側から送信されてくる、ポリゴン頂点以外の諸情報の定義
@@ -34,6 +36,8 @@ struct VS_OUT
 {
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
+    float4 color : COLOR; //色（明るさ)
+    float4 normal : NORMAL;
     float4 color : COLOR; //色（明るさ）
 };
 
@@ -80,19 +84,34 @@ float4 PS(VS_OUT inData) : SV_Target
     //}
     //return g_texture.Sample(g_sampler, inData.uv);
     
+    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
+    
+    float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
+    float4 reflection = reflect(normalize(-lightPosition), inData.normal);
+    float4 specular = pow(saturate(dot(reflection, normalize(inData.eyev))), shininess) * specularColor;
+    float2 uv;
+    uv.x = NL;
+    uv.y = 0.5;
+    float tI = g_toon_texture.Sample(g_sampler, uv);
+    
+    //float stI = g_toon_texture.Sample(g_sampler, float2(specular.x, 0));
+    
+    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
     float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 diffuse;
     float4 ambient;
     if (isTextured == false)
     {
-        diffuse = diffuseColor * inData.color * factor.x;
-        ambient = diffuseColor * ambentSource * factor.x;
+        //diffuse = diffuseColor * inData.color * factor.x;
+        //ambient = diffuseColor * ambentSource * factor.x;
+        diffuse = lightSource * diffuseColor * tI;
+        ambient = lightSource * diffuseColor * ambientColor;
     }
     else
     {
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
-        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
+        diffuse = lightSource * g_texture.Sample(g_sampler, inData.uv) * tI;
+        ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambentSource;
     }
     return diffuse + ambient;
 }
