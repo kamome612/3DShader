@@ -27,6 +27,7 @@ cbuffer global
 cbuffer gStage : register(b1)
 {
     float4 lightPosition;
+    float4 eyePosition;
 }
 
 //───────────────────────────────────────
@@ -34,10 +35,12 @@ cbuffer gStage : register(b1)
 //───────────────────────────────────────
 struct VS_OUT
 {
+    float4 wpos : POSITION0;
     float4 pos : SV_POSITION; //位置
     float2 uv : TEXCOORD; //UV座標
-    float4 color : COLOR; //色（明るさ)
+    float4 color : COLOR; //色（明るさ）
     float4 normal : NORMAL;
+    float4 eyev : POSITION1;
 };
 
 //───────────────────────────────────────
@@ -46,20 +49,23 @@ struct VS_OUT
 VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 {
 	//ピクセルシェーダーへ渡す情報
-    VS_OUT outData;
+    VS_OUT outData = (VS_OUT)0;
 
 	//ローカル座標に、ワールド・ビュー・プロジェクション行列をかけて
 	//スクリーン座標に変換し、ピクセルシェーダーへ
     outData.pos = mul(pos, matWVP);
     outData.uv = uv;
-
+    normal.w = 0;
     normal = mul(normal, matNormal);
+    normal = normalize(normal);
+    outData.normal = normal;
     //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
-    float4 light = lightPosition;
+    float4 light = normalize(lightPosition);
     light = normalize(light); //単位ベクトル化
     outData.color = saturate(dot(normal, light));
     float4 posw = mul(pos, matW);
+    outData.eyev = eyePosition - posw;
     
     
 	//まとめて出力
@@ -114,7 +120,7 @@ float4 PS(VS_OUT inData) : SV_Target
         ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambientColor;
     }
     float4 ret = diffuse + ambient;
-    if (NE > -0.1 && NE < 0.1)
+    if (NE > -0.2 && NE < 0.2)
     {
         ret = float4(0, 0, 0, 1);
     }

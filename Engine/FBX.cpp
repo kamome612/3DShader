@@ -313,7 +313,7 @@ void FBX::Draw(Transform& transform)
 		Direct3D::SetShader(SHADER_POINT);
 		break;
 	case 3:
-		Direct3D::SetShader(SHADER_TOON);
+		Direct3D::SetShader(SHADER_3D);
 		break;
 	default:
 		break;
