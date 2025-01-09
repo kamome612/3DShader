@@ -38,7 +38,6 @@ struct VS_OUT
     float2 uv : TEXCOORD; //UV座標
     float4 color : COLOR; //色（明るさ)
     float4 normal : NORMAL;
-    float4 color : COLOR; //色（明るさ）
 };
 
 //───────────────────────────────────────
@@ -84,8 +83,6 @@ float4 PS(VS_OUT inData) : SV_Target
     //}
     //return g_texture.Sample(g_sampler, inData.uv);
     
-    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
-    
     float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
     float4 reflection = reflect(normalize(-lightPosition), inData.normal);
     float4 specular = pow(saturate(dot(reflection, normalize(inData.eyev))), shininess) * specularColor;
@@ -97,8 +94,7 @@ float4 PS(VS_OUT inData) : SV_Target
     //float stI = g_toon_texture.Sample(g_sampler, float2(specular.x, 0));
     
     float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
-    //float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
-    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
+    float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
     float4 diffuse;
     float4 ambient;
     if (isTextured == false)
