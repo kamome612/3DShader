@@ -58,7 +58,9 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
     //float4 light = float4(1, 0, 0, 0);
     float4 light = lightPosition;
     light = normalize(light); //単位ベクトル化
-    outData.color = clamp(dot(normal, light), 0, 1);
+    outData.color = saturate(dot(normal, light));
+    float4 posw = mul(pos, matW);
+    
     
 	//まとめて出力
     return outData;
@@ -82,6 +84,8 @@ float4 PS(VS_OUT inData) : SV_Target
     //    return Id * Kd * inData.color + Id * Kd * ambentSource;
     //}
     //return g_texture.Sample(g_sampler, inData.uv);
+    
+    float NE = dot(inData.normal.xyz, normalize(inData.eyev.xyz)); //法線と視線のcos
     
     float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
     float4 reflection = reflect(normalize(-lightPosition), inData.normal);
@@ -107,7 +111,13 @@ float4 PS(VS_OUT inData) : SV_Target
     else
     {
         diffuse = lightSource * g_texture.Sample(g_sampler, inData.uv) * tI;
-        ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambentSource;
+        ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambientColor;
     }
-    return diffuse + ambient;
+    float4 ret = diffuse + ambient;
+    if (NE > -0.1 && NE < 0.1)
+    {
+        ret = float4(0, 0, 0, 1);
+    }
+    return ret;
+    //return diffuse + ambient;
 }
