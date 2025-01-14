@@ -4,6 +4,8 @@
 Texture2D g_texture : register(t0); //テクスチャー
 SamplerState g_sampler : register(s0); //サンプラー
 
+SamplerState g_Stateg_toon_sampler : register(s1);
+
 Texture2D g_toon_texture : register(t1); //テクスチャー
 
 //───────────────────────────────────────
@@ -27,6 +29,7 @@ cbuffer global
 cbuffer gStage : register(b1)
 {
     float4 lightPosition;
+    float4 eyePosition;
 }
 
 //───────────────────────────────────────
@@ -112,51 +115,22 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 diffuse;
     float4 ambient;
     
-    float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
-    float4 n1 = float4(1 / 4.0, 1 / 4.0, 1 / 4.0, 1);
-    float4 n2 = float4(2 / 4.0, 2 / 4.0, 2 / 4.0, 1);
-    float4 n3 = float4(3 / 4.0, 3 / 4.0, 3 / 4.0, 1);
-    float4 n4 = float4(4 / 4.0, 4 / 4.0, 4 / 4.0, 1);
-    float tI = 0.1 * step(n1, inData.color) + 0.2 * step(n2, inData.color) +
-               0.3 * step(n3, inData.color); //+ 0.4 * step(n4, NL);
+    float NL = saturate(dot(inData.normal, normalize(lightPosition)));
     
-    //float OutColor;
-    //if (NL.x < 1.0f / 4)
-    //{
-    //    OutColor = float4(0.0f / 4.0f, 0.0f / 4.0f, 0.0f / 4.0f, 1.0f);
-
-    //}
-    //else if (NL.x < 2.0f / 4)
-    //{
-    //    OutColor = float4(1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f, 1.0f);
-    //}
-    //else if (NL.x < 3.0f / 4)
-    //{
-    //    OutColor = float4(2.0f / 4.0f, 2.0f / 4.0f, 2.0f / 4.0f, 1.0f);
-    //}
-    //else if (NL.x < 1.0f)
-    //{
-    //    OutColor = float4(3.0f / 4.0f, 3.0f / 4.0f, 3.0f / 4.0f, 1.0f);
-    //}
-    //else
-    //{
-    //    OutColor = float4(4.0f / 4.0f, 4.0f / 4.0f, 4.0f / 4.0f, 1.0f);
-    //}
+    float2 uv = float2(NL, 0);
+    float4 tI = g_toon_texture.Sample(g_sampler, uv);
     
     if (isTextured == false)
     {
         //diffuse = diffuseColor * inData.color * factor.x;
-        diffuse = diffuseColor * tI * factor.x;
+        diffuse = diffuseColor * tI;
         ambient = diffuseColor * ambentSource;
     }
     else
     {
         //diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
-        diffuse = g_texture.Sample(g_sampler, inData.uv) * tI * factor.x;
+        diffuse = g_texture.Sample(g_sampler, inData.uv) * tI;
         ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource;
     }
-    //return diffuse + ambient;
-    
-    float2 uv = float2(tI.x, 0);
-    return g_toon_texture.Sample(g_sampler, uv);
+    return diffuse + ambient;
 }

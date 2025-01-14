@@ -10,7 +10,7 @@ Texture2D g_toon_texture : register(t1);
 // コンスタントバッファ
 // DirectX 側から送信されてくる、ポリゴン頂点以外の諸情報の定義
 //───────────────────────────────────────
-cbuffer global
+cbuffer global : register(b0)
 {
     //変換行列、視点、光源
     float4x4 matWVP; // ワールド・ビュー・プロジェクションの合成行列
