@@ -174,11 +174,11 @@ void Stage::Draw()
 		ImGui::Text(text.c_str());
 		static float pos[3] = {0,0,0};
 		if (ImGui::InputFloat3("Position", pos, "%.3f")) {
-			hTrs.position_ = { pos[0],pos[1],pos[3] };
+			hTrs.position_ = { pos[0],pos[1],pos[2] };
 		}
-		static float scl[3] = { 0.25,0.25,0.25 };
-		if (ImGui::SliderFloat3("scale", scl, 0, 2, "%.3f")) {
-			hTrs.scale_ = { scl[0],scl[1],scl[2] };
+		static float scl = 0.25;
+		if (ImGui::SliderFloat3("scale", &scl, 0.01, 2, "%.3f")) {
+			hTrs.scale_ = { scl,scl,scl };
 		}
 	}
 }
