@@ -6,6 +6,9 @@
 #include "Engine/RootJob.h"
 #include "Engine/Input.h"
 #include "Engine/Model.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 
 //リンカ
 //#pragma comment(lib,"d3d11.lib")
@@ -69,6 +72,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 	HRESULT hr = Direct3D::Initialize(winW, winH, hWnd);
 	if (FAILED(hr)) {
 		PostQuitMessage(0);
+	}
+
+	{
+		//  バージョンの確認
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // キーボードによるナビゲーションの有効化
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // コントローラーによるナビゲーションの有効
+		//  Win32用の初期化
+		ImGui_ImplWin32_Init(hWnd);
+		//  DirectX11用の初期化
+		ImGui_ImplDX11_Init(Direct3D::pDevice, Direct3D::pContext);
 	}
 
 	//カメラの初期化
@@ -152,9 +168,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 	return 0;
 }
 
+//ImGuiのメッセージ処理
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 //ウィンドウプロシージャ（何かあった時によばれる関数）
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
+
 	switch (msg)
 	{
 	case WM_DESTROY://ウィンドウが閉じられたイベント

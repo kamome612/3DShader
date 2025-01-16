@@ -4,6 +4,10 @@
 #include <cassert>
 #include <vector>
 
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_dx11.h"
+#include "../imgui/imgui_impl_win32.h"
+
 //変数
 namespace Direct3D
 {
@@ -37,8 +41,8 @@ HRESULT Direct3D::Initialize(int winW, int winH, HWND hWnd)
 	ZeroMemory(&scDesc, sizeof(scDesc));
 
 	//描画先のフォーマット
-	scDesc.BufferDesc.Width = winW;		//画面幅
-	scDesc.BufferDesc.Height = winH;	//画面高さ
+	scDesc.BufferDesc.Width = 0;		//画面幅
+	scDesc.BufferDesc.Height = 0;	//画面高さ
 	scDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// 何色使えるか
 
 	//FPS（1/60秒に1回）
@@ -371,16 +375,24 @@ void Direct3D::BeginDraw()
 
 	//深度バッファクリア
 	pContext->ClearDepthStencilView(pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 }
 
 void Direct3D::EndDraw()
 {
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	//スワップ（バックバッファを表に表示する）
 	pSwapChain->Present(0, 0);
 }
 
 void Direct3D::Release()
 {
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 	//解放処理
 	/*SAFE_RELEASE(pRasterizerState);
 	SAFE_RELEASE(pVertexLayout);

@@ -2,6 +2,9 @@
 #include "Engine/Model.h"
 #include "Engine/Input.h"
 #include "Engine/Camera.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 
 void Stage::InitConstantBuffer()
 {
@@ -151,6 +154,13 @@ void Stage::Draw()
 	hTrs.position_ = { 0.5, 0.5, 0 };
 	Model::SetTransform(hLambertT_, hTrs);
 	Model::Draw(hLambertT_);
+
+	{
+		//デモウィンドウの描画
+		//ImGui::ShowDemoWindow();
+		ImGui::Text("This is My Original Shader");
+		ImGui::Text("%5.2lf", hTrs.rotate_.y);
+	}
 }
 
 void Stage::Release()
