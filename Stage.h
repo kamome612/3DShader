@@ -18,6 +18,7 @@ private:
 	int hPhongT_;
 	int hLambert_;
 	int hLambertT_;
+	bool isRotate_; //メインのオブジェクトが回転するか
 	ID3D11Buffer* pConstantBuffer_;
 	void InitConstantBuffer();
 

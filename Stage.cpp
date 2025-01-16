@@ -24,7 +24,8 @@ void Stage::InitConstantBuffer()
 }
 
 Stage::Stage(GameObject* parent)
-	:GameObject(parent, "Stage"),pConstantBuffer_(nullptr)
+	:GameObject(parent, "Stage"),pConstantBuffer_(nullptr),
+	isRotate_(true)
 {
 	hModel_ = -1;
 	hGround_ = -1;
@@ -140,12 +141,14 @@ void Stage::Draw()
 	Model::Draw(hRoom_);
 	
 	static Transform hTrs;
-	hTrs.scale_ = { 0.25,0.25,0.25 };
-	hTrs.position_ = { -0.5, 1.5, 0 };
-	hTrs.rotate_.y += 0.1;
+	//hTrs.scale_ = { 0.25,0.25,0.25 };
+	//hTrs.position_ = { -0.5, 1.5, 0 };
+	if (isRotate_) {
+		hTrs.rotate_.y += 0.5;
+	}
 	Model::SetTransform(hPhong_, hTrs);
 	Model::Draw(hPhong_);
-	hTrs.position_ = { 0.5, 1.5, 0 };
+	/*hTrs.position_ = { 0.5, 1.5, 0 };
 	Model::SetTransform(hPhongT_, hTrs);
 	Model::Draw(hPhongT_);
 	hTrs.position_ = { -0.5, 0.5, 0 };
@@ -153,13 +156,30 @@ void Stage::Draw()
 	Model::Draw(hLambert_);
 	hTrs.position_ = { 0.5, 0.5, 0 };
 	Model::SetTransform(hLambertT_, hTrs);
-	Model::Draw(hLambertT_);
+	Model::Draw(hLambertT_);*/
 
 	{
 		//デモウィンドウの描画
 		//ImGui::ShowDemoWindow();
+		static string text;
 		ImGui::Text("This is My Original Shader");
 		ImGui::Text("%5.2lf", hTrs.rotate_.y);
+
+		ImGui::Checkbox("Rotate Switch", &isRotate_);
+		if (ImGui::Button("Rotate Light"))
+		{
+			isRotate_ = !isRotate_;
+		}
+		ImGui::InputText("input : ",text.data(),255);
+		ImGui::Text(text.c_str());
+		static float pos[3] = {0,0,0};
+		if (ImGui::InputFloat3("Position", pos, "%.3f")) {
+			hTrs.position_ = { pos[0],pos[1],pos[3] };
+		}
+		static float scl[3] = { 0.25,0.25,0.25 };
+		if (ImGui::SliderFloat3("scale", scl, 0, 2, "%.3f")) {
+			hTrs.scale_ = { scl[0],scl[1],scl[2] };
+		}
 	}
 }
 
