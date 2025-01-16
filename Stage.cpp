@@ -121,11 +121,11 @@ void Stage::Draw()
 	Model::SetTransform(hModel_, ltr);
 	Model::Draw(hModel_);
 
-	/*Transform gTrs;
+	Transform gTrs;
 	gTrs.position_ = { 0,0,0 };
 	gTrs.rotate_ = { 0,0,0 };
 	Model::SetTransform(hRoom_, gTrs);
-	Model::Draw(hRoom_);*/
+	Model::Draw(hRoom_);
 	
 	static Transform hTrs;
 	hTrs.scale_ = { 0.25,0.25,0.25 };

@@ -51,7 +51,7 @@ float4 VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL) :
     float4 outPos;
     
     normal.w = 0;
-    pos = pos + normal * 0.05;
+    pos = pos + normal * 0.1;
     pos = mul(pos, matWVP);
     
     return pos;
