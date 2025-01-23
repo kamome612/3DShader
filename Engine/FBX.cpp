@@ -307,7 +307,8 @@ void FBX::Draw(Transform& transform)
 			cb.shininess = pMaterialList_[i].shininess;
 			cb.diffuseColor = pMaterialList_[i].diffuse;
 			cb.diffuseFactor = pMaterialList_[i].factor;
-			cb.isTextured = pMaterialList_[i].pTexture != nullptr;
+			int val = (int)(pMaterialList_[i].pTexture != nullptr);
+			cb.isTextured = { val,val,val,val };
 			/*if (pMaterialList_[i].pTexture == nullptr)
 				cb.isTextured = false;
 			else

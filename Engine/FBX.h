@@ -21,6 +21,7 @@ class FBX
 	struct MATERIAL
 	{
 		Texture* pTexture;
+		Texture* pNormalMap;
 		XMFLOAT4 diffuse; //拡散反射係数　ベクトル
 		XMFLOAT4 specular;//鏡面反射係数　ベクトル
 		XMFLOAT4 shininess; //鏡面反射のパラメータ  スカラ
@@ -39,7 +40,8 @@ class FBX
 		XMFLOAT4    ambientColor;
 		XMFLOAT4    specularColor;
 		XMFLOAT4    shininess;
-		int         isTextured;
+		XMINT4      isTextured;
+		XMINT4      isNormalMapped;
 	};
 
 	//頂点情報
@@ -48,6 +50,7 @@ class FBX
 		XMVECTOR position;
 		XMVECTOR uv;
 		XMVECTOR normal;//ノーマル追加(法線ベクトル)
+		XMVECTOR tangent; //接線ベクトル
 	};
 
 	int vertexCount_;	//頂点数

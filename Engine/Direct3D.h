@@ -20,6 +20,7 @@ enum SHADER_TYPE
 	SHADER_POINT,
 	SHADER_TOON,
 	SHADER_OUTLINE,
+	SHADER_NORMALMAP,
 	SHADER_MAX
 };
 
@@ -38,6 +39,7 @@ namespace Direct3D
 	HRESULT InitPLShader();
 	HRESULT InitShaderToon();
 	HRESULT InitShaderOutLine();
+	HRESULT InitShaderNormalMap();
 
 	void SetShader(SHADER_TYPE type);
 

@@ -136,6 +136,8 @@
     <FxCompile Include="ToonShader.hlsl">
       <Filter>Engine\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="OutLineShader.hlsl" />
+    <FxCompile Include="NormalMapping.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
