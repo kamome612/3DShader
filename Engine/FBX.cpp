@@ -35,6 +35,7 @@ HRESULT FBX::Load(std::string fileName)
 	FbxNode* rootNode = pFbxScene->GetRootNode();
 	FbxNode* pNode = rootNode->GetChild(0);
 	FbxMesh* mesh = pNode->GetMesh();
+	mesh->SplitPoints(FbxLayerElement::eMaterial);
 
 	//各情報の個数を取得
 	vertexCount_ = mesh->GetControlPointsCount();	//頂点の数
@@ -88,6 +89,10 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 	//頂点情報を入れる配列
 	VERTEX* vertices = new VERTEX[vertexCount_];
 	//std::vector<VERTEX> vertices(vertexCount_);
+	
+	int nNum = mesh->GetElementNormalCount();
+	int tNum = mesh->GetElementTangentCount();
+
 	//全ポリゴン
 	for (DWORD poly = 0; poly < polygonCount_; poly++)
 	{
@@ -113,9 +118,30 @@ void FBX::InitVertex(fbxsdk::FbxMesh* mesh)
 			//頂点の法線
 			//FbxVector4 Normal;
 			//mesh->GetPolygonVertexNormal(poly, vertex, Normal);	//ｉ番目のポリゴンの、ｊ番目の頂点の法線をゲット
+
 			vertices[index].normal = XMVectorSet((float)Normal[0], (float)Normal[1], -(float)Normal[2], 0.0f);
 		}
 	}
+
+	//////////////////  タンジェント情報の取得  ///////////////////
+	
+	FbxGeometryElementTangent* t = mesh->GetElementTangent(0);
+	for (DWORD poly = 0; poly < polygonCount_; poly++) 
+	{
+		FbxVector4 tangent{ 0,0,0,0 };
+		//調べる頂点の番号
+		int index = mesh->GetPolygonVertexIndex(poly);
+		if (t != nullptr)
+		{
+			tangent = t->GetDirectArray().GetAt(index).mData;
+		}
+		for (int i = 0; i < 3; i++)
+		{
+			int rIndex = mesh->GetPolygonVertices()[index + i];
+			vertices[rIndex].tangent = XMVectorSet((float)tangent[0], (float)tangent[1], (float)tangent[2], 0.0f);
+		}
+	}
+	//////////////////  タンジェント情報の取得  ///////////////////
 
 	// 頂点バッファ作成
 	HRESULT hr;
@@ -309,6 +335,10 @@ void FBX::Draw(Transform& transform)
 			cb.diffuseFactor = pMaterialList_[i].factor;
 			int val = (int)(pMaterialList_[i].pTexture != nullptr);
 			cb.isTextured = { val,val,val,val };
+
+			//
+			int nval = (int)(pMaterialList_[i].pTexture != nullptr);
+			cb.isNormalMapped = { nval,nval,nval,nval };
 			/*if (pMaterialList_[i].pTexture == nullptr)
 				cb.isTextured = false;
 			else

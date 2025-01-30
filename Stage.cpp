@@ -27,6 +27,7 @@ Stage::Stage(GameObject* parent)
 	hGround_ = -1;
 	hHole_ = -1;
 	hRoom_ = -1;
+	hBlock_ = -1;
 }
 
 Stage::~Stage()
@@ -50,6 +51,8 @@ void Stage::Initialize()
 	assert(hRoom_ >= 0);
 	hHole_ = Model::Load("Assets\\Phong.fbx");
 	assert(hHole_ >= 0);
+	hBlock_ = Model::Load("Assets\\ishigaki.fbx");
+	assert(hBlock_ >= 0);
 	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
 	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
 
@@ -131,8 +134,10 @@ void Stage::Draw()
 	hTrs.scale_ = { 0.25,0.25,0.25 };
 	hTrs.position_ = { 0, 0.5, 0 };
 	hTrs.rotate_.y += 0.1;
-	Model::SetTransform(hHole_, hTrs);
-	Model::Draw(hHole_);
+	Model::SetTransform(hBlock_, hTrs);
+	Model::Draw(hBlock_);
+	/*Model::SetTransform(hHole_, hTrs);
+	Model::Draw(hHole_);*/
 }
 
 void Stage::Release()
