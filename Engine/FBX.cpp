@@ -35,7 +35,8 @@ HRESULT FBX::Load(std::string fileName)
 	FbxNode* rootNode = pFbxScene->GetRootNode();
 	FbxNode* pNode = rootNode->GetChild(0);
 	FbxMesh* mesh = pNode->GetMesh();
-	mesh->SplitPoints(FbxLayerElement::eMaterial);
+	mesh->SplitPoints(FbxLayerElement::eTextureDiffuse);
+	//mesh->SplitPoints(FbxLayerElement::eMaterial);
 
 	//各情報の個数を取得
 	vertexCount_ = mesh->GetControlPointsCount();	//頂点の数
@@ -252,10 +253,11 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 			const char* textureFilePath = textureInfo->GetRelativeFileName();
 
 			fs::path texFile(textureFilePath);
+			fs::path filename = texFile.filename();
 			//ここで存在チェックが必要
-			if (fs::is_regular_file(texFile)) {
+			if (fs::is_regular_file(filename)) {
 				pMaterialList_[i].pTexture = new Texture;
-				HRESULT hr = pMaterialList_[i].pTexture->Load(texFile.string());
+				HRESULT hr = pMaterialList_[i].pTexture->Load(filename.string());
 				assert(hr == S_OK);
 			}
 
@@ -313,6 +315,36 @@ void FBX::InitMaterial(fbxsdk::FbxNode* pNode)
 				pMaterialList_[i].shininess = { 10.0f,10.0f,10.0f,1.0f };
 			}
 		}
+		/////////////  ノーマルテクスチャの読み込み関連  //////////////
+		{
+			//テクスチャ情報
+			FbxProperty lProperty = pMaterial->FindProperty(FbxSurfaceMaterial::sBump);
+			int texCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
+			if (texCount > 0)
+			{
+				//ノーマルテクスチャを読む
+				FbxFileTexture* textureInfo = lProperty.GetSrcObject<FbxFileTexture>(0);
+				const char* textureFilePath = textureInfo->GetRelativeFileName();
+
+				//ファイル名+拡張だけにする
+				fs::path texFile(textureFilePath);
+				fs::path filename = texFile.filename();
+
+				//ファイルからテクスチャ作成
+				if (fs::is_regular_file(filename))
+				{
+					pMaterialList_[i].pNormalMap = new Texture;
+					HRESULT hr = pMaterialList_[i].pNormalMap->Load(filename.string());
+					assert(hr == S_OK);
+				}
+			}
+			else
+			{
+				//ノーマルマップはなかったよ
+				pMaterialList_[i].pNormalMap = nullptr;
+			}
+		}
+		/////////////  ノーマルテクスチャの読み込み関連  //////////////
 	}
 }
 
@@ -372,6 +404,16 @@ void FBX::Draw(Transform& transform)
 
 				ID3D11ShaderResourceView* pSRV = pMaterialList_[i].pTexture->GetSRV();
 				Direct3D::pContext->PSSetShaderResources(0, 1, &pSRV);
+			}
+
+			if (pMaterialList_[i].pNormalMap) {
+				//サンプラー追加
+				//サンプラーとシェーダーリソースビューをシェーダにセット
+				ID3D11SamplerState* pSampler = pMaterialList_[i].pNormalMap->GetSampler();
+				Direct3D::pContext->PSSetSamplers(1, 1, &pSampler);
+
+				ID3D11ShaderResourceView* pSRV = pMaterialList_[i].pNormalMap->GetSRV();
+				Direct3D::pContext->PSSetShaderResources(1, 1, &pSRV);
 			}
 			ID3D11SamplerState* pSampler = pToonTex_->GetSampler();
 			//Direct3D::pContext->PSSetSamplers(1, 1, &pSampler);

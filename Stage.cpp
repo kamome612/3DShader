@@ -51,7 +51,7 @@ void Stage::Initialize()
 	assert(hRoom_ >= 0);
 	hHole_ = Model::Load("Assets\\Phong.fbx");
 	assert(hHole_ >= 0);
-	hBlock_ = Model::Load("Assets\\ishigaki.fbx");
+	hBlock_ = Model::Load("Assets\\Torus.fbx");
 	assert(hBlock_ >= 0);
 	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
 	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
