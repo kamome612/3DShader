@@ -29,6 +29,13 @@ cbuffer gStage : register(b1)
 {
     float4 lightPosition;
     float4 eyePosition;
+    float4 pLightposition;
+    float4 pointLightColor[5];
+    float4 spotLightColor;
+    float4 direction;
+    float4 kTerm[5];
+    float4 sptParam;
+    int4 pointListSW[5];
 }
 
 //───────────────────────────────────────
@@ -52,24 +59,20 @@ struct VS_OUT
 VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 {
 	//ピクセルシェーダーへ渡す情報
-    VS_OUT outData = (VS_OUT) 0;
+    VS_OUT outData;
 
 	//ローカル座標に、ワールド・ビュー・プロジェクション行列をかけて
 	//スクリーン座標に変換し、ピクセルシェーダーへ
     outData.pos = mul(pos, matWVP);
     outData.uv = uv;
-    normal.w = 0;
+    
     normal = mul(normal, matNormal);
-    normal = normalize(normal);
-    outData.normal = normal;
+   
     //float4 light = float4(0, 1, -1, 0);//光源ベクトルの逆ベクトル
     //float4 light = float4(1, 0, 0, 0);
-    float4 light = normalize(lightPosition);
+    float4 light = lightPosition[0];
     light = normalize(light); //単位ベクトル化
-    outData.color = saturate(dot(normal, light));
-    float4 posw = mul(pos, matW);
-    outData.eyev = eyePosition - posw;
-    
+    outData.color = clamp(dot(normal, light), 0, 1);
     
 	//まとめて出力
     return outData;
@@ -80,39 +83,23 @@ VS_OUT VS(float4 pos : POSITION, float4 uv : TEXCOORD, float4 normal : NORMAL)
 //───────────────────────────────────────
 float4 PS(VS_OUT inData) : SV_Target
 {
-    float NE = dot(inData.normal.xyz, normalize(inData.eyev.xyz)); //法線と視線のcos
-    
-    float4 NL = saturate(dot(inData.normal, normalize(lightPosition)));
-    float4 reflection = reflect(normalize(-lightPosition), inData.normal);
-    float4 specular = pow(saturate(dot(reflection, normalize(inData.eyev))), shininess) * specularColor;
-    float2 uv;
-    uv.x = NL;
-    uv.y = 0.5;
-    float tI = g_toon_texture.Sample(g_sampler, uv);
-    
-    //float stI = g_toon_texture.Sample(g_sampler, float2(specular.x, 0));
-    
-    float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 lightSource = float4(1.0, 1.0, 1.0, 1.0);
+    float4 ambentSource = float4(0.0, 0.0, 0.0, 1.0);
     float4 diffuse;
     float4 ambient;
     if (isTextured == false)
     {
-        //diffuse = diffuseColor * inData.color * factor.x;
-        //ambient = diffuseColor * ambentSource * factor.x;
-        diffuse = lightSource * diffuseColor * tI;
-        ambient = lightSource * diffuseColor * ambientColor;
+        diffuse = diffuseColor * inData.color * factor.x;
+        ambient = diffuseColor * ambentSource * factor.x;
     }
     else
     {
-        diffuse = lightSource * g_texture.Sample(g_sampler, inData.uv) * tI;
-        ambient = lightSource * g_texture.Sample(g_sampler, inData.uv) * ambientColor;
+        diffuse = g_texture.Sample(g_sampler, inData.uv) * inData.color * factor.x;
+        ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
+
     }
-    float4 ret = diffuse + ambient;
-    if (NE > -0.2 && NE < 0.2)
-    {
-        ret = float4(0, 0, 0, 1);
-    }
-    return ret;
-    //return diffuse + ambient;
+	//return g_texture.Sample(g_sampler, inData.uv);// (diffuse + ambient);]
+	//float4 diffuse = lightSource * inData.color;
+	//float4 ambient = lightSource * ambentSource;
+    return diffuse + ambient;
 }
