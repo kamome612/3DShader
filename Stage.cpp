@@ -36,6 +36,7 @@ Stage::Stage(GameObject* parent)
 	hHole_ = -1;
 	hRoom_ = -1;
 	hBlock_ = -1;
+	isRotate_ = true;
 }
 
 Stage::~Stage()
