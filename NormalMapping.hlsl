@@ -114,7 +114,7 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 ambentSource = float4(0.5, 0.5, 0.5, 1.0);
     float4 diffuse;
     float4 ambient;
-    if(isNormalMapped)
+    if(isNormalMapped.x == 1)
     {
         //ノーマルマップ画像の読み込み
         float4 nmap = g_nTexture.Sample(g_sampler, inData.uv) * 2.0f - 1.0f;
@@ -125,6 +125,7 @@ float4 PS(VS_OUT inData) : SV_Target
         //鏡面反射の計算
         float4 reflection = reflect(normalize(inData.light), nmap);
         float4 specular = pow(clamp(dot(reflection, inData.Neyev), 0, 1),shininess);
+        
         if (isTextured == false)
         {
             diffuse = diffuseColor * NL * factor.x;
@@ -136,7 +137,7 @@ float4 PS(VS_OUT inData) : SV_Target
             ambient = g_texture.Sample(g_sampler, inData.uv) * ambentSource * factor.x;
 
         }
-        return diffuse + ambient;
+        return diffuse + specular + ambient;
     }
     else
     {
