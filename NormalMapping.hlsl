@@ -116,11 +116,15 @@ float4 PS(VS_OUT inData) : SV_Target
     float4 ambient;
     if(isNormalMapped)
     {
+        //ノーマルマップ画像の読み込み
         float4 nmap = g_nTexture.Sample(g_sampler, inData.uv) * 2.0f - 1.0f;
         nmap = normalize(nmap);
         nmap.w = 0;
+        //ランバートのやつ
         float4 NL = clamp(dot(normalize(inData.light), nmap), 0, 1);
-        
+        //鏡面反射の計算
+        float4 reflection = reflect(normalize(inData.light), nmap);
+        float4 specular = pow(clamp(dot(reflection, inData.Neyev), 0, 1),shininess);
         if (isTextured == false)
         {
             diffuse = diffuseColor * NL * factor.x;
