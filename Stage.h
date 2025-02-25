@@ -48,6 +48,7 @@ private:
 	int hHole_;
 	int hBlock_;
 	bool isRotate_;
+	Sprite hImage_;
 	ID3D11Buffer* pCBStage_;
 	void InitConstantBuffer();
 	spotLightState sptlight_;

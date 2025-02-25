@@ -32,6 +32,7 @@ HRESULT Texture::Load(string fileName)
 	size_t ret;
 	mbstowcs_s(&ret, wtext, fileName.c_str(), fileName.length());
 	hr = LoadFromWICFile(wtext, WIC_FLAGS::WIC_FLAGS_NONE, &metadata, image);
+	imgSize_ = { (float)image.GetImages()->width,(float)image.GetImages()->height };
 	if (FAILED(hr))
 	{
 		return E_FAIL;

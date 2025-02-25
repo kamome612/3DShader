@@ -2,6 +2,8 @@
 #include "Engine/Model.h"
 #include "Engine/Input.h"
 #include "Engine/Camera.h"
+#include "Engine/Image.h"
+#include "Engine/Sprite.h"
 
 namespace
 {
@@ -31,12 +33,6 @@ void Stage::InitConstantBuffer()
 Stage::Stage(GameObject* parent)
 	:GameObject(parent, "Stage"),pCBStage_(nullptr)
 {
-	hModel_ = -1;
-	hGround_ = -1;
-	hHole_ = -1;
-	hRoom_ = -1;
-	hBlock_ = -1;
-	isRotate_ = true;
 }
 
 Stage::~Stage()
@@ -45,23 +41,6 @@ Stage::~Stage()
 
 void Stage::Initialize()
 {
-	/*hModel_[0] = Model::Load("Assets/ball.fbx");
-	assert(hModel_[0] >= 0);
-	hModel_[1] = Model::Load("Asstes/balldark.fbx");
-	assert(hModel_[1] >= 0);
-	hModel_[2] = Model::Load("Assets/balllight.fbx");
-	assert(hModel_[2] >= 0);*/
-	//確かめるよう
-	hModel_ = Model::Load("Assets\\ball.fbx");
-	assert(hModel_ >= 0);
-	hGround_ = Model::Load("Assets\\roadb.fbx");
-	assert(hGround_ >= 0);
-	hRoom_ = Model::Load("Assets\\room.fbx");
-	assert(hRoom_ >= 0);
-	hHole_ = Model::Load("Assets\\Phong.fbx");
-	assert(hHole_ >= 0);
-	hBlock_ = Model::Load("Assets\\ishigaki.fbx");
-	assert(hBlock_ >= 0);
 	Camera::SetPosition(XMFLOAT3{ 0, 0.8, -2.8});
 	Camera::SetTarget(XMFLOAT3{ 0,0.8,0 });
 
@@ -98,6 +77,9 @@ void Stage::Initialize()
 	ptlight_[4].sw = 0;
 
 
+	hImage_ = new Sprite("Assets/dice.png");
+	hImage_->Initialize();
+
 	for (int i = 0; i < POINT_LIGHT_MAX; i++)
 	{
 		lpos_backup[i] = ptlight_[i].lightPosition;
@@ -108,7 +90,7 @@ void Stage::Initialize()
 
 void Stage::Update()
 {
-	transform_.rotate_.y += 0.5f;
+	/*transform_.rotate_.y += 0.5f;
 	if (Input::IsKey(DIK_A)) {
 		XMFLOAT4 p = Direct3D::GetLightPos();
 		p = { p.x - 0.05f,p.y,p.z,p.w };
@@ -141,7 +123,7 @@ void Stage::Update()
 		XMFLOAT4 p = Direct3D::GetLightPos();
 		p = { p.x ,p.y - 0.05f, p.z,p.w };
 		Direct3D::SetLightPos(p);
-	}
+	}*/
 
 	//コンスタントバッファのシェーへのコンスタントバッファのセットを書くよ
 	CONSTBUFFER_STAGE cb;
@@ -181,55 +163,7 @@ void Stage::Update()
 
 void Stage::Draw()
 {
-	Transform ltr;
-	ltr.position_ = { Direct3D::GetLightPos().x,Direct3D::GetLightPos().y,Direct3D::GetLightPos().z };
-	ltr.scale_ = { 0.1,0.1,0.1 };
-	Model::SetTransform(hModel_, ltr);
-	Model::Draw(hModel_);
-
-	Transform tr;
-	tr.position_ = { 0, 0, 0 };
-	//tr.scale_ = { 5.0f, 5.0f, 5.0f };
-	tr.rotate_ = { 0,0,0 };
-	//Model::SetTransform(hGround, tr);
-	//Model::Draw(hGround);
-
-	Model::SetTransform(hRoom_, tr);
-	Model::Draw(hRoom_);
-
-	static Transform tbunny;
-	tbunny.scale_ = { 0.5,0.5,0.5 };
-	tbunny.position_ = { 0, 0.5, 0 };
-
-	if (isRotate_)
-		tbunny.rotate_.y += 2;//ドーナツの回転
-
-
-	Model::SetTransform(hBlock_, tbunny);
-	Model::Draw(hBlock_);
-
-	static float lightRotAngle = 0;
-	XMVECTOR pt[POINT_LIGHT_MAX];
-	if (isRotateLight) {
-		for (int i = 0; i < POINT_LIGHT_MAX; i++)
-		{
-			pt[i] = XMLoadFloat4(&lpos_backup[i]);
-		}
-		XMMATRIX yrot = XMMatrixRotationY(lightRotAngle);
-		for (int i = 0; i < POINT_LIGHT_MAX; i++)
-		{
-			//ptlight_[i].lightPosition = XMVector3TransformCoord(pt[i], yrot);
-			XMStoreFloat4(&(ptlight_[i].lightPosition),
-				XMVector3TransformCoord(pt[i], yrot));
-		}
-	}
-	else
-	{
-		for (int i = 0; i < POINT_LIGHT_MAX; i++)
-		{
-			ptlight_[i].lightPosition = lpos_backup[i];
-		}
-	}
+	hImage_->Draw(transform_);
 }
 
 void Stage::Release()

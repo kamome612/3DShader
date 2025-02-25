@@ -2,10 +2,17 @@
 #include "Camera.h"
 #include <filesystem>
 
+namespace fs = std::filesystem;
 
 Sprite::Sprite()
 	:pTexture_(nullptr), pVertexBuffer_(nullptr), pIndexBuffer_(nullptr), pConstantBuffer_(nullptr),
-	 vertexNum_(0),indexNum_(0)
+	 vertexNum_(0),indexNum_(0),filename_("")
+{
+}
+
+Sprite::Sprite(string filename)
+	:pTexture_(nullptr), pVertexBuffer_(nullptr), pIndexBuffer_(nullptr), pConstantBuffer_(nullptr),
+	vertexNum_(0), indexNum_(0),filename_(filename)
 {
 }
 
@@ -97,6 +104,37 @@ void Sprite::Draw(Transform& transform)
 	SetBufferToPipeline();
 	//描画
 	Direct3D::pContext->DrawIndexed(indexNum_, 0, 0);
+}
+
+void Sprite::Draw(Transform& transform, RECT rect, float alpha)
+{
+	Direct3D::SetShader(SHADER_2D);
+
+	//頂点バッファ
+	UINT stride = sizeof(VERTEX);
+	UINT offset = 0;
+	Direct3D::pContext->IASetVertexBuffers(0, 1, &pVertexBuffer_, &stride, &offset);
+
+	// インデックスバッファーをセット
+	stride = sizeof(int);
+	offset = 0;
+	Direct3D::pContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);
+	//コンスタントバッファ
+	Direct3D::pContext->VSSetConstantBuffers(0, 1, &pConstantBuffer_);	//頂点シェーダー用	
+	Direct3D::pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer_);	//ピクセルシェーダー用
+	Direct3D::SetDepthBufferWriteEnable(fales);//デプスバッファのオンオフ切り替え
+	//↑後で書く
+
+	CONSTANT_BUFFER cb;
+	D3D11_MAPPED_SUBRESOURCE pdata;
+
+	//表示サイズに拡縮
+	XMMATRIX cut = XMMatrixScaling((float)rect.right, (float)rect.bottom, 1);
+	//XMMATRIX view = XMMatrixScaling(1.0f / スクリーンwidtth, 1.0f / スクリーンheight, 1);
+    //最終的な行列
+	//XMMATRIX world = cut * transform.matScale_
+	//                     * transform.matRotate_
+	//                     * view * transform.matTranslate_;
 }
 
 void Sprite::Release()
@@ -196,21 +234,40 @@ HRESULT Sprite::CreateConstantBuffer()
 	return S_OK;
 }
 
+HRESULT Sprite::LoadTexture()
+{
+	HRESULT hr;
+	pTexture_ = new Texture;
+	if (fs::is_regular_file(filename_))
+	{
+		hr = pTexture_->Load(filename_);
+		if (FAILED(hr))
+		{
+			MessageBox(NULL, L"テクスチャの作成に失敗しました", L"エラー", MB_OK);
+			return hr;
+		}
+		return S_OK;
+	}
+	return S_FALSE;
+}
+
 HRESULT Sprite::LoadTexture(std::string fileName)
 {
-	namespace fs = std::filesystem;
-
-	pTexture_ = new Texture;
-	assert(fs::is_regular_file(fileName));
+	//namespace fs = std::filesystem;
 
 	HRESULT hr;
-	hr = pTexture_->Load(fileName);
-	if (FAILED(hr))
+	pTexture_ = new Texture;
+	if (fs::is_regular_file(fileName))
 	{
-		MessageBox(NULL, L"テクスチャの作成に失敗しました", L"エラー", MB_OK);
-		return hr;
+		hr = pTexture_->Load(fileName);
+		if (FAILED(hr))
+		{
+			MessageBox(NULL, L"テクスチャの作成に失敗しました", L"エラー", MB_OK);
+			return hr;
+		}
+		return S_OK;
 	}
-	return S_OK;
+	return S_FALSE;
 }
 
 void Sprite::PassDataToCB(DirectX::XMMATRIX worldMatrix)

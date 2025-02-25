@@ -4,6 +4,7 @@
 #include "Texture.h"
 #include <vector>
 #include "Transform.h"
+#include <string>
 
 using std::vector;
 using namespace DirectX;
@@ -13,9 +14,9 @@ class Sprite
 	//コンスタントバッファー:アプリ側から、シェーダーに毎フレーム渡したい情報
 	struct CONSTANT_BUFFER
 	{
-		XMMATRIX	matW;
-		XMMATRIX matNormal; //matWからNormal用に改名
-		XMINT2   winSize;
+		XMMATRIX	matW;     //ワールド行列
+		XMMATRIX    uvTrans;  //テクスチャ座標の変換行列
+		XMFLOAT4    bcolor;   //テクスチャとの合成色
 	};
 
 	//頂点情報
@@ -37,10 +38,15 @@ class Sprite
 	Texture* pTexture_;//テクスチャへのポインタ
 public:
 	Sprite();//コンストラクタ
+	Sprite(string filename);
     ~Sprite();//デストラクタ
 	HRESULT Load(std::string fileName);//初期化用(コンストラクタでできないやつはこっちで初期化)
 	void Draw(Transform& transform);//描画関数
+	void Draw(Transform& transform, RECT rect, float alpha);
+
 	void Release();//解放処理
+
+	XMFLOAT2 GetTextureSize() { return pTexture_->GetTextureSize(); }
 private:
 	//-----------Initializeから呼ばれる関数---------------------
 	void InitVertexData();           //頂点情報の準備
@@ -51,10 +57,13 @@ private:
 
 	HRESULT CreateConstantBuffer();  //コンスタントバッファ作成
 
+	HRESULT LoadTexture();
 	HRESULT LoadTexture(std::string fileName);           //テクスチャのロード
 
 	//-----------Draw関数から呼ばれる関数-----------------------
 	void PassDataToCB(DirectX::XMMATRIX worldMatrix); //コンスタントバッファに各種情報を渡す
-	void SetBufferToPipeline();                        //各バッファをパイプラインにセット
+	void SetBufferToPipeline();   //各バッファをパイプラインにセット
+
+	std::string filename_;
 };
 
